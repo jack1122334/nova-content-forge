@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useMemo } from "react";
 import SearchBox from "@/components/home/SearchBox";
 import Stats from "@/components/home/Stats";
 import TaskCarousel from "@/components/home/TaskCarousel";
@@ -72,9 +72,10 @@ const mockTasks: TaskCardProps[] = [
   },
 ];
 
-const mockTemplates: TemplateCardProps[] = Array.from({ length: 14 }, (_, i) => ({
-  id: `template-${i + 1}`,
-  title: [
+// Generate more diverse mock templates with random attributes
+const generateMockTemplates = (): TemplateCardProps[] => {
+  const platforms = ["小红书", "抖音", "快手", "视频号", "Instagram", "youtube", "X"];
+  const titles = [
     "小红书爆款穿搭模板",
     "美妆测评详细解析",
     "居家好物种草模板",
@@ -82,15 +83,70 @@ const mockTemplates: TemplateCardProps[] = Array.from({ length: 14 }, (_, i) => 
     "美食探店推荐模板",
     "电子产品开箱测评",
     "读书笔记分享模板",
-  ][i % 7],
-  image: `https://images.unsplash.com/photo-${148 + i % 4}${5 + i % 3}958449943-2429e8be8625?w=300&h=200&auto=format&fit=crop`,
-  views: Math.floor(Math.random() * 5000) + 500,
-  likes: Math.floor(Math.random() * 500) + 50,
-  isFree: i % 3 === 0,
-  platform: ["小红书", "抖音", "快手", "视频号", "Instagram", "youtube", "X"][i % 7],
-}));
+    "健身打卡记录",
+    "手工DIY教程",
+    "母婴育儿经验分享",
+    "数码产品评测模板",
+    "户外运动体验记录",
+    "美甲新品分享模板",
+    "职场技能分享",
+  ];
+  
+  return Array.from({ length: 21 }, (_, i) => ({
+    id: `template-${i + 1}`,
+    title: titles[i % titles.length],
+    image: `https://images.unsplash.com/photo-${148 + i % 5}${5 + i % 3}958449943-2429e8be8625?w=300&h=200&auto=format&fit=crop`,
+    views: Math.floor(Math.random() * 5000) + 500,
+    likes: Math.floor(Math.random() * 500) + 50,
+    isFree: i % 3 === 0,
+    platform: platforms[i % platforms.length],
+  }));
+};
+
+const mockTemplates = generateMockTemplates();
 
 const HomePage: React.FC = () => {
+  const [filters, setFilters] = useState({
+    platforms: [] as string[],
+    industries: [] as string[],
+    fees: [] as string[],
+    types: [] as string[],
+  });
+
+  const filteredTemplates = useMemo(() => {
+    return mockTemplates.filter((template) => {
+      // Filter by platform
+      if (filters.platforms.length > 0 && !filters.platforms.includes(template.platform)) {
+        return false;
+      }
+      
+      // Filter by fee
+      if (filters.fees.length > 0) {
+        const feeMatches = template.isFree 
+          ? filters.fees.includes("免费") 
+          : filters.fees.includes("付费");
+        
+        if (!feeMatches) {
+          return false;
+        }
+      }
+      
+      // Note: We don't have industry and type data in our mock templates
+      // In a real application, we would filter by these as well
+      
+      return true;
+    });
+  }, [filters]);
+
+  const handleFilterChange = (newFilters: {
+    platforms: string[];
+    industries: string[];
+    fees: string[];
+    types: string[];
+  }) => {
+    setFilters(newFilters);
+  };
+
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-2 gap-6">
@@ -101,8 +157,8 @@ const HomePage: React.FC = () => {
       <TaskCarousel tasks={mockTasks} />
       
       <div>
-        <TemplateFilter />
-        <TemplateGrid templates={mockTemplates} />
+        <TemplateFilter onFilterChange={handleFilterChange} />
+        <TemplateGrid templates={filteredTemplates.length > 0 ? filteredTemplates : mockTemplates} />
       </div>
     </div>
   );
