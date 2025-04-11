@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { ChevronRight } from "lucide-react";
 
 const templates = [
@@ -25,7 +25,20 @@ const templates = [
   },
 ];
 
-const TemplateSelector: React.FC = () => {
+interface TemplateSelectorProps {
+  onSelectTemplate?: (templateId: string) => void;
+}
+
+const TemplateSelector: React.FC<TemplateSelectorProps> = ({ onSelectTemplate }) => {
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+
+  const handleTemplateSelect = (templateId: string) => {
+    setSelectedTemplate(templateId);
+    if (onSelectTemplate) {
+      onSelectTemplate(templateId);
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-sm p-6">
       <div className="flex justify-between items-center mb-4">
@@ -36,7 +49,11 @@ const TemplateSelector: React.FC = () => {
       </div>
       <div className="grid grid-cols-4 gap-3">
         {templates.map((template) => (
-          <div key={template.id} className="border border-gray-100 rounded-lg overflow-hidden cursor-pointer hover:border-nova-blue">
+          <div 
+            key={template.id} 
+            className={`border ${selectedTemplate === template.id ? 'border-nova-blue' : 'border-gray-100'} rounded-lg overflow-hidden cursor-pointer hover:border-nova-blue`}
+            onClick={() => handleTemplateSelect(template.id)}
+          >
             <div className="aspect-[4/3] relative">
               <img 
                 src={template.image} 

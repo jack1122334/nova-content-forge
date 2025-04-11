@@ -1,6 +1,7 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import TaskPanel from "@/components/studio/TaskPanel";
 import TrendingPanel from "@/components/studio/TrendingPanel";
 import AccountPanel from "@/components/studio/AccountPanel";
@@ -11,14 +12,30 @@ import ContentPreview from "@/components/studio/ContentPreview";
 const StudioPage: React.FC = () => {
   const [generating, setGenerating] = React.useState(false);
   const [contentReady, setContentReady] = React.useState(false);
+  const [selectedTrends, setSelectedTrends] = useState<string[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const [customRequirements, setCustomRequirements] = useState("");
   
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     setGenerating(true);
-    // Simulate content generation
-    setTimeout(() => {
-      setGenerating(false);
+    
+    try {
+      // Content will be generated in ContentPreview component
       setContentReady(true);
-    }, 2000);
+    } catch (error) {
+      console.error("Error generating content:", error);
+      toast.error("生成内容时出错，请重试");
+    } finally {
+      setGenerating(false);
+    }
+  };
+  
+  const handleTrendSelect = (trends: string[]) => {
+    setSelectedTrends(trends);
+  };
+  
+  const handleTemplateSelect = (templateId: string) => {
+    setSelectedTemplate(templateId);
   };
   
   return (
@@ -27,14 +44,14 @@ const StudioPage: React.FC = () => {
       
       <div className="grid grid-cols-3 gap-6 mb-6">
         <TaskPanel />
-        <TrendingPanel />
+        <TrendingPanel onSelectTrends={handleTrendSelect} />
         <AccountPanel />
       </div>
       
       <div className="grid grid-cols-2 gap-6">
         <div className="space-y-6">
-          <TemplateSelector />
-          <CustomRequirements />
+          <TemplateSelector onSelectTemplate={handleTemplateSelect} />
+          <CustomRequirements onChange={setCustomRequirements} />
           <div className="flex justify-center">
             <Button
               onClick={handleGenerate}
@@ -48,7 +65,11 @@ const StudioPage: React.FC = () => {
         
         <div className="h-full">
           {contentReady ? (
-            <ContentPreview />
+            <ContentPreview 
+              selectedTrends={selectedTrends}
+              selectedTemplate={selectedTemplate}
+              customRequirements={customRequirements}
+            />
           ) : (
             <div className="bg-white rounded-2xl shadow-sm h-full flex items-center justify-center">
               <div className="text-center p-6">

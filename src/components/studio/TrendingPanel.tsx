@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const trends = [
@@ -45,15 +45,43 @@ const trends = [
   },
 ];
 
-const TrendingPanel: React.FC = () => {
+interface TrendingPanelProps {
+  onSelectTrends?: (selectedTrends: string[]) => void;
+}
+
+const TrendingPanel: React.FC<TrendingPanelProps> = ({ onSelectTrends }) => {
+  const [selectedTrends, setSelectedTrends] = useState<string[]>([]);
+
+  const handleTrendToggle = (trendId: string, title: string) => {
+    setSelectedTrends(prev => {
+      const newSelected = prev.includes(title)
+        ? prev.filter(id => id !== title)
+        : [...prev, title];
+      
+      if (onSelectTrends) {
+        onSelectTrends(newSelected);
+      }
+      
+      return newSelected;
+    });
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-sm p-6 h-full">
       <h3 className="text-lg font-medium text-nova-dark-gray mb-4">热点推荐</h3>
       <ScrollArea className="h-[280px] pr-3">
         <div className="space-y-3">
           {trends.map((trend) => (
-            <label key={trend.id} className="flex items-start p-3 border border-gray-100 rounded-xl hover:bg-gray-50 cursor-pointer">
-              <input type="checkbox" className="mt-1 mr-3" />
+            <label 
+              key={trend.id} 
+              className="flex items-start p-3 border border-gray-100 rounded-xl hover:bg-gray-50 cursor-pointer"
+            >
+              <input 
+                type="checkbox" 
+                className="mt-1 mr-3" 
+                checked={selectedTrends.includes(trend.title)}
+                onChange={() => handleTrendToggle(trend.id, trend.title)}
+              />
               <div className="flex-1">
                 <h4 className="text-sm font-medium text-nova-dark-gray">{trend.title}</h4>
                 <div className="mt-1 text-xs flex items-center">
