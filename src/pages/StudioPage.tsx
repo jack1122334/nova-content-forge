@@ -45,7 +45,7 @@ const StudioPage: React.FC = () => {
       
       // Prepare request payload
       const payload = {
-        workflow_id: "7491960694519169078",
+        workflow_id: "7491986209322942518",
         parameters: {
           brand_brief: task ? `${task.brand} - ${task.brief}` : "无品牌任务",
           hotspot: selectedTrends.length > 0 ? selectedTrends.join("、") : "",
