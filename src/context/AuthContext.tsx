@@ -2,10 +2,11 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 type Profile = {
   id: string;
-  username: string;
+  username: string | null;
   avatar_url: string | null;
   phone: string | null;
 };
@@ -50,9 +51,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (session?.user) {
         fetchProfile(session.user.id);
+      } else {
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
     });
 
     return () => {
@@ -70,19 +71,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error("Error fetching profile:", error);
-        return;
+        // Don't show error toast to users for profile fetching issues
       }
 
       if (data) {
         setProfile(data as Profile);
       }
+      
+      setIsLoading(false);
     } catch (error) {
       console.error("Error in fetchProfile:", error);
+      setIsLoading(false);
     }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+      toast.success("已退出登录");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast.error("退出登录失败");
+    }
   };
 
   const value = {

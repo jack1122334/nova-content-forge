@@ -1,6 +1,6 @@
 
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,8 +9,13 @@ import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Upload } from "lucide-react";
 
+function useQuery() {
+  return new URLSearchParams(useLocation().search);
+}
+
 const AuthPage: React.FC = () => {
   const navigate = useNavigate();
+  const query = useQuery();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,6 +23,14 @@ const AuthPage: React.FC = () => {
   const [phone, setPhone] = useState("");
   const [avatar, setAvatar] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string>(query.get("tab") || "login");
+
+  useEffect(() => {
+    const tab = query.get("tab");
+    if (tab) {
+      setActiveTab(tab);
+    }
+  }, [query]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -49,7 +62,7 @@ const AuthPage: React.FC = () => {
         // Upload avatar if provided
         if (avatar) {
           const fileExt = avatar.name.split('.').pop();
-          const fileName = `${data.user.id}.${fileExt}`;
+          const fileName = `${data.user.id}/${Date.now()}.${fileExt}`;
           
           const { error: uploadError } = await supabase.storage
             .from('avatars')
@@ -77,13 +90,15 @@ const AuthPage: React.FC = () => {
           }
         } else {
           // Just update phone if no avatar
-          const { error: updateError } = await supabase
-            .from('profiles')
-            .update({ phone })
-            .eq('id', data.user.id);
+          if (phone) {
+            const { error: updateError } = await supabase
+              .from('profiles')
+              .update({ phone })
+              .eq('id', data.user.id);
 
-          if (updateError) {
-            console.error("Error updating profile:", updateError);
+            if (updateError) {
+              console.error("Error updating profile:", updateError);
+            }
           }
         }
 
@@ -91,7 +106,11 @@ const AuthPage: React.FC = () => {
         navigate("/");
       }
     } catch (error: any) {
-      toast.error(error.message || "注册失败");
+      if (error.message.includes('already registered')) {
+        toast.error("邮箱已被注册，请直接登录或使用其他邮箱");
+      } else {
+        toast.error(error.message || "注册失败");
+      }
       console.error("Error during sign up:", error);
     } finally {
       setLoading(false);
@@ -112,7 +131,11 @@ const AuthPage: React.FC = () => {
       toast.success("登录成功！");
       navigate("/");
     } catch (error: any) {
-      toast.error(error.message || "登录失败");
+      if (error.message.includes('Invalid login credentials')) {
+        toast.error("邮箱或密码错误，请重试");
+      } else {
+        toast.error(error.message || "登录失败");
+      }
       console.error("Error during sign in:", error);
     } finally {
       setLoading(false);
@@ -124,7 +147,7 @@ const AuthPage: React.FC = () => {
       <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-sm">
         <h1 className="text-2xl font-bold text-center text-nova-dark-gray mb-6">Nova 创作平台</h1>
         
-        <Tabs defaultValue="login" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid grid-cols-2 mb-6">
             <TabsTrigger value="login">登录</TabsTrigger>
             <TabsTrigger value="register">注册</TabsTrigger>
@@ -169,6 +192,16 @@ const AuthPage: React.FC = () => {
               >
                 {loading ? "登录中..." : "登录"}
               </Button>
+              
+              <div className="text-center pt-2">
+                <Button 
+                  variant="link" 
+                  onClick={() => navigate("/")}
+                  className="text-nova-blue"
+                >
+                  暂不登录，继续访问
+                </Button>
+              </div>
             </form>
           </TabsContent>
           
@@ -261,6 +294,16 @@ const AuthPage: React.FC = () => {
               >
                 {loading ? "注册中..." : "注册"}
               </Button>
+              
+              <div className="text-center pt-2">
+                <Button 
+                  variant="link" 
+                  onClick={() => navigate("/")}
+                  className="text-nova-blue"
+                >
+                  暂不注册，继续访问
+                </Button>
+              </div>
             </form>
           </TabsContent>
         </Tabs>

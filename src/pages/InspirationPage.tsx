@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import TemplateFilter from "@/components/home/TemplateFilter";
 import TemplateCard, { TemplateCardProps } from "@/components/home/TemplateCard";
 
@@ -37,11 +37,25 @@ const mockInspirations: TemplateCardProps[] = Array.from({ length: 21 }, (_, i) 
 }));
 
 const InspirationPage: React.FC = () => {
+  const [filteredInspirations, setFilteredInspirations] = useState(mockInspirations);
+  
+  const handleFilterChange = (filters: {
+    platforms: string[];
+    industries: string[];
+    fees: string[];
+    types: string[];
+  }) => {
+    // Filter logic would go here in a real app
+    console.log("Filters applied:", filters);
+    // For now, we'll just use the mock data
+    setFilteredInspirations(mockInspirations);
+  };
+
   return (
     <div>
       <h1 className="text-2xl font-bold text-nova-dark-gray mb-6">灵感广场</h1>
       
-      <TemplateFilter />
+      <TemplateFilter onFilterChange={handleFilterChange} />
       
       <div className="bg-white rounded-2xl shadow-sm p-6">
         <div className="flex justify-between items-center mb-6">
@@ -53,8 +67,8 @@ const InspirationPage: React.FC = () => {
           </div>
         </div>
         
-        <div className="grid grid-cols-7 gap-4">
-          {mockInspirations.map(inspiration => (
+        <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-4">
+          {filteredInspirations.map(inspiration => (
             <TemplateCard key={inspiration.id} {...inspiration} />
           ))}
         </div>
