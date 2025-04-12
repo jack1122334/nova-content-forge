@@ -93,6 +93,7 @@ const TrendingPanel: React.FC<TrendingPanelProps> = ({ onSelectTrends }) => {
       if (onSelectTrends) {
         onSelectTrends(newSelected);
       }
+      console.log("Selected trends in panel:", newSelected);
       
       return newSelected;
     });

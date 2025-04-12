@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -31,6 +30,7 @@ const StudioPage: React.FC = () => {
     // Check if there's a task passed from marketplace
     if (location.state && location.state.selectedTask) {
       setTask(location.state.selectedTask);
+      console.log("Task set from location state:", location.state.selectedTask);
     }
   }, [location.state]);
   
@@ -43,12 +43,18 @@ const StudioPage: React.FC = () => {
       const accountInfoElement = document.querySelector('[data-info="account-info"]');
       const accountInfo = accountInfoElement?.textContent || "";
       
+      // Get brand brief info
+      const brandBrief = task ? `${task.brand} - ${task.brief}` : "无品牌任务";
+      
+      // Get selected trends
+      const hotspots = selectedTrends.length > 0 ? selectedTrends.join("、") : "";
+      
       // Prepare request payload
       const payload = {
         workflow_id: "7492378369356333090",
         parameters: {
-          brand_brief: task ? `${task.brand} - ${task.brief}` : "无品牌任务",
-          hotspot: selectedTrends.length > 0 ? selectedTrends.join("、") : "",
+          brand_brief: brandBrief,
+          hotspot: hotspots,
           account_info: accountInfo,
           text_style: customRequirements || "",
           template: selectedTemplate || ""
@@ -126,10 +132,12 @@ const StudioPage: React.FC = () => {
   
   const handleTrendSelect = (trends: string[]) => {
     setSelectedTrends(trends);
+    console.log("Selected trends updated:", trends);
   };
   
   const handleTemplateSelect = (templateId: string) => {
     setSelectedTemplate(templateId);
+    console.log("Selected template updated:", templateId);
   };
   
   return (
@@ -182,7 +190,7 @@ const StudioPage: React.FC = () => {
                 </div>
                 <h3 className="text-lg font-medium text-nova-dark-gray mb-2">准备好创作了吗？</h3>
                 <p className="text-sm text-nova-gray">
-                  选择模板、输入要求，点击"内容生成"按钮开始创作
+                  选择模板、输���要求，点击"内容生成"按钮开始创作
                 </p>
               </div>
             </div>

@@ -12,6 +12,7 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask }) => {
   useEffect(() => {
     if (initialTask) {
       setTask(initialTask);
+      console.log("Task set in TaskPanel:", initialTask);
     }
   }, [initialTask]);
   
@@ -37,7 +38,7 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask }) => {
       <div className="p-4 border border-gray-100 rounded-xl bg-gray-50">
         <div className="mb-3">
           <h4 className="text-base font-medium text-nova-dark-gray">{currentTask.brand} - {currentTask.brief}</h4>
-          <p className="text-sm text-nova-gray">品类: {currentTask.category}</p>
+          <p className="text-xs text-nova-gray">品类: {currentTask.category}</p>
         </div>
         <div className="space-y-2 mb-4">
           <p className="text-sm text-nova-dark-gray">
