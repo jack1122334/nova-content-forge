@@ -71,30 +71,6 @@ const ProfilePage: React.FC = () => {
       <h1 className="text-2xl font-bold text-nova-dark-gray mb-6">个人中心</h1>
       
       <div className="grid grid-cols-3 gap-6">
-        <div className="col-span-2">
-          <Tabs defaultValue="earnings" className="bg-white rounded-2xl shadow-sm">
-            <TabsList className="w-full bg-gray-50 p-1 rounded-t-2xl border-b border-gray-100">
-              <TabsTrigger value="earnings" className="flex-1 data-[state=active]:bg-white data-[state=active]:text-nova-dark-gray">
-                收益统计
-              </TabsTrigger>
-              <TabsTrigger value="saved" className="flex-1 data-[state=active]:bg-white data-[state=active]:text-nova-dark-gray">
-                收藏模板
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="earnings" className="p-0">
-              <EarningsCard />
-            </TabsContent>
-            <TabsContent value="saved" className="p-6">
-              <h3 className="text-lg font-medium text-nova-dark-gray mb-4">我收藏的模板</h3>
-              <div className="grid grid-cols-4 gap-4">
-                {mockTemplates.map(template => (
-                  <TemplateCard key={template.id} {...template} />
-                ))}
-              </div>
-            </TabsContent>
-          </Tabs>
-        </div>
-        
         <div className="space-y-6">
           <AccountInfo />
           <div className="bg-white rounded-2xl shadow-sm p-6">
@@ -117,6 +93,30 @@ const ProfilePage: React.FC = () => {
             </div>
           </div>
           <ReferralCard />
+        </div>
+        
+        <div className="col-span-2">
+          <Tabs defaultValue="earnings" className="bg-white rounded-2xl shadow-sm">
+            <TabsList className="w-full bg-gray-50 p-1 rounded-t-2xl border-b border-gray-100">
+              <TabsTrigger value="earnings" className="flex-1 data-[state=active]:bg-white data-[state=active]:text-nova-dark-gray">
+                收益统计
+              </TabsTrigger>
+              <TabsTrigger value="saved" className="flex-1 data-[state=active]:bg-white data-[state=active]:text-nova-dark-gray">
+                收藏模板
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="earnings" className="p-0">
+              <EarningsCard />
+            </TabsContent>
+            <TabsContent value="saved" className="p-6">
+              <h3 className="text-lg font-medium text-nova-dark-gray mb-4">我收藏的模板</h3>
+              <div className="grid grid-cols-4 gap-4">
+                {mockTemplates.map(template => (
+                  <TemplateCard key={template.id} {...template} />
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>

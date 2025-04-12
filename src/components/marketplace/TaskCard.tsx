@@ -1,10 +1,5 @@
 
 import React from "react";
-import { Heart, Eye } from "lucide-react";
-import { cn } from "@/lib/utils";
-
-export type TaskType = "门槛任务" | "赏金任务" | "奖金任务" | "直接认领";
-export type Platform = "小红书" | "抖音" | "快手" | "视频号" | "Instagram" | "youtube" | "X" | "reddit" | "Facebook";
 
 export interface TaskCardProps {
   id: string;
@@ -12,12 +7,13 @@ export interface TaskCardProps {
   category: string;
   brief: string;
   budget: string;
-  platform: Platform;
+  platform: string;
   reward: string;
-  type: TaskType;
+  type: string;
   progress: number;
   participants: number;
   requirement?: string;
+  onClick?: () => void;
 }
 
 const TaskCard: React.FC<TaskCardProps> = ({
@@ -31,130 +27,79 @@ const TaskCard: React.FC<TaskCardProps> = ({
   progress,
   participants,
   requirement,
+  onClick
 }) => {
-  const [expanded, setExpanded] = React.useState(false);
-
-  const getTypeColor = (type: TaskType) => {
+  const getTypeColor = (type: string) => {
     switch (type) {
       case "门槛任务":
-        return "bg-blue-50 text-nova-blue";
-      case "赏金任务":
-        return "bg-purple-50 text-purple-600";
+        return "bg-blue-50 text-blue-500";
       case "奖金任务":
-        return "bg-green-50 text-green-600";
+        return "bg-green-50 text-green-500";
+      case "赏金任务":
+        return "bg-purple-50 text-purple-500";
       case "直接认领":
-        return "bg-orange-50 text-orange-600";
+        return "bg-orange-50 text-orange-500";
+      default:
+        return "bg-gray-50 text-gray-500";
     }
   };
 
   return (
     <div 
-      className="nova-card cursor-pointer relative"
-      onClick={() => setExpanded(true)}
+      className="nova-card cursor-pointer h-full"
+      onClick={onClick}
     >
-      <div className="p-5">
+      <div className="p-4 flex flex-col h-full">
         <div className="flex justify-between items-start mb-3">
           <div>
-            <h3 className="text-nova-dark-gray font-medium">{brand} | <span className="text-nova-gray">品类：{category}</span></h3>
+            <h3 className="text-base font-medium text-nova-dark-gray">{brand}</h3>
+            <p className="text-xs text-nova-gray">{category}</p>
           </div>
-          <span className={cn("text-xs px-2 py-1 rounded-full", getTypeColor(type))}>
+          <span className={`px-2 py-1 rounded-full text-xs ${getTypeColor(type)}`}>
             {type}
           </span>
         </div>
         
-        <div className="mb-4">
+        <div className="mb-3 flex-1">
           <div className="mb-2">
-            <span className="text-sm text-nova-gray">传播brief：</span>
-            <span className="text-sm text-nova-dark-gray">{brief}</span>
+            <p className="text-sm font-medium text-nova-dark-gray mb-1">任务说明</p>
+            <p className="text-xs text-nova-gray truncate">{brief}</p>
           </div>
+          
+          <div className="grid grid-cols-2 gap-2 mb-2">
+            <div>
+              <p className="text-xs text-nova-gray">平台</p>
+              <p className="text-xs text-nova-dark-gray truncate">{platform || "无"}</p>
+            </div>
+            <div>
+              <p className="text-xs text-nova-gray">总预算</p>
+              <p className="text-xs text-nova-dark-gray truncate">{budget || "无"}</p>
+            </div>
+          </div>
+          
           <div className="mb-2">
-            <span className="text-sm text-nova-gray">品牌预算：</span>
-            <span className="text-sm text-nova-dark-gray font-medium">{budget}</span>
+            <p className="text-xs text-nova-gray">奖励机制</p>
+            <p className="text-xs text-nova-blue truncate">{reward || "无"}</p>
           </div>
-          <div className="mb-2">
-            <span className="text-sm text-nova-gray">传播平台：</span>
-            <span className="text-sm text-nova-dark-gray">{platform}</span>
-          </div>
-          <div className="mb-2">
-            <span className="text-sm text-nova-gray">奖励规则：</span>
-            <span className="text-sm text-nova-dark-gray">{reward}</span>
-          </div>
+          
           {requirement && (
             <div className="mb-2">
-              <span className="text-sm text-nova-gray">账号要求：</span>
-              <span className="text-sm text-nova-dark-gray">{requirement}</span>
+              <p className="text-xs text-nova-gray">参与要求</p>
+              <p className="text-xs text-nova-dark-gray truncate">{requirement}</p>
             </div>
           )}
         </div>
         
-        <div className="flex justify-between items-center">
-          <div className="w-2/3">
-            <div className="nova-progress">
-              <div className="nova-progress-bar" style={{ width: `${progress}%` }}></div>
-            </div>
-            <p className="mt-1 text-xs text-nova-gray">已完成 {progress}% · {participants} 人参与</p>
+        <div>
+          <div className="nova-progress mb-1">
+            <div className="nova-progress-bar" style={{ width: `${progress}%` }}></div>
           </div>
-          <div className="flex items-center text-sm text-nova-gray">
-            <Heart className="h-4 w-4 mr-1" /> 24
-            <Eye className="h-4 w-4 ml-3 mr-1" /> 568
+          <div className="flex justify-between text-xs text-nova-gray">
+            <span>进度 {progress}%</span>
+            <span>{participants} 人参与</span>
           </div>
         </div>
       </div>
-      
-      {expanded && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={(e) => e.target === e.currentTarget && setExpanded(false)}>
-          <div className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h2 className="text-xl font-bold text-nova-dark-gray">{brand}</h2>
-                <p className="text-nova-gray">品类：{category}</p>
-              </div>
-              <span className={cn("text-sm px-3 py-1 rounded-full", getTypeColor(type))}>
-                {type}
-              </span>
-            </div>
-            
-            <div className="space-y-4 mb-6">
-              <div>
-                <h3 className="text-sm font-medium text-nova-gray mb-1">传播brief</h3>
-                <p className="text-nova-dark-gray">{brief}</p>
-                <p className="mt-2 text-nova-dark-gray">品牌希望通过创作者的真实体验，展示产品的独特之处。内容需要突出产品的核心卖点，同时保持内容的真实性和创意性。</p>
-              </div>
-              
-              <div>
-                <h3 className="text-sm font-medium text-nova-gray mb-1">品牌预算</h3>
-                <p className="text-nova-dark-gray font-medium">{budget}</p>
-              </div>
-              
-              <div>
-                <h3 className="text-sm font-medium text-nova-gray mb-1">传播平台</h3>
-                <p className="text-nova-dark-gray">{platform}</p>
-              </div>
-              
-              <div>
-                <h3 className="text-sm font-medium text-nova-gray mb-1">奖励规则</h3>
-                <p className="text-nova-dark-gray">{reward}</p>
-              </div>
-              
-              {requirement && (
-                <div>
-                  <h3 className="text-sm font-medium text-nova-gray mb-1">账号要求</h3>
-                  <p className="text-nova-dark-gray">{requirement}</p>
-                </div>
-              )}
-              
-              <div>
-                <h3 className="text-sm font-medium text-nova-gray mb-1">截止日期</h3>
-                <p className="text-nova-dark-gray">2025-05-15</p>
-              </div>
-            </div>
-            
-            <div className="pt-4 border-t border-gray-100">
-              <button className="nova-button w-full py-3">参与任务</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

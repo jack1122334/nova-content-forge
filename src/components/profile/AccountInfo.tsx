@@ -1,9 +1,11 @@
 
 import React from "react";
 import { Edit, Check } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 const AccountInfo: React.FC = () => {
   const [isEditing, setIsEditing] = React.useState(false);
+  const { profile } = useAuth();
   
   return (
     <div className="bg-white rounded-2xl shadow-sm p-6">
@@ -28,12 +30,12 @@ const AccountInfo: React.FC = () => {
       <div className="space-y-6">
         <div className="flex items-center">
           <img 
-            src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=80&h=80&auto=format&fit=crop&crop=faces" 
+            src={profile?.avatar_url || "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=80&h=80&auto=format&fit=crop&crop=faces"} 
             alt="Profile" 
             className="w-16 h-16 rounded-full mr-4 object-cover"
           />
           <div>
-            <h4 className="text-base font-medium text-nova-dark-gray">设计生活家</h4>
+            <h4 className="text-base font-medium text-nova-dark-gray">{profile?.username || "设计生活家"}</h4>
             <p className="text-sm text-nova-gray">创作者 · 注册时间：2024-12-15</p>
           </div>
         </div>
@@ -74,36 +76,16 @@ const AccountInfo: React.FC = () => {
         </div>
         
         <div>
-          <h4 className="text-sm font-medium text-nova-gray mb-2">账号人设</h4>
+          <h4 className="text-sm font-medium text-nova-gray mb-2">账号人设与知识</h4>
           {isEditing ? (
             <textarea
               className="nova-text-input w-full h-24 resize-none"
-              defaultValue="80后都市女性，热爱家居设计和生活美学，分享高性价比的居家好物和装饰灵感。"
+              defaultValue="80后都市女性，来自上海，月收入2.5-3万，热爱家居设计和生活美学。毕业于知名艺术院校，现从事室内设计工作，对色彩搭配和空间布局有独特见解。周末喜欢探店、逛展览，分享高性价比的居家好物和装饰灵感。擅长将简约风与温馨感结合，打造舒适实用的生活空间。热衷分享居家改造、收纳技巧和艺术摆件，致力于用设计提升日常生活品质。"
             ></textarea>
           ) : (
             <p className="text-sm text-nova-dark-gray">
-              80后都市女性，热爱家居设计和生活美学，分享高性价比的居家好物和装饰灵感。
+              80后都市女性，来自上海，月收入2.5-3万，热爱家居设计和生活美学。毕业于知名艺术院校，现从事室内设计工作，对色彩搭配和空间布局有独特见解。周末喜欢探店、逛展览，分享高性价比的居家好物和装饰灵感。擅长将简约风与温馨感结合，打造舒适实用的生活空间。热衷分享居家改造、收纳技巧和艺术摆件，致力于用设计提升日常生活品质。
             </p>
-          )}
-        </div>
-        
-        <div>
-          <h4 className="text-sm font-medium text-nova-gray mb-2">内容偏好</h4>
-          {isEditing ? (
-            <input
-              type="text"
-              className="nova-text-input w-full"
-              defaultValue="家居好物,生活方式,设计美学,日常穿搭,美食分享"
-              placeholder="多个标签用逗号分隔"
-            />
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              <span className="nova-tag">家居好物</span>
-              <span className="nova-tag">生活方式</span>
-              <span className="nova-tag">设计美学</span>
-              <span className="nova-tag">日常穿搭</span>
-              <span className="nova-tag">美食分享</span>
-            </div>
           )}
         </div>
       </div>

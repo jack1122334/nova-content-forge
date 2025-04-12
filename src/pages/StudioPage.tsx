@@ -1,27 +1,94 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useLocation } from "react-router-dom";
 import TaskPanel from "@/components/studio/TaskPanel";
 import TrendingPanel from "@/components/studio/TrendingPanel";
 import AccountPanel from "@/components/studio/AccountPanel";
 import TemplateSelector from "@/components/studio/TemplateSelector";
 import CustomRequirements from "@/components/studio/CustomRequirements";
 import ContentPreview from "@/components/studio/ContentPreview";
+import { TaskCardProps } from "@/components/marketplace/TaskCard";
 
 const StudioPage: React.FC = () => {
+  const location = useLocation();
   const [generating, setGenerating] = React.useState(false);
   const [contentReady, setContentReady] = React.useState(false);
   const [selectedTrends, setSelectedTrends] = useState<string[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [customRequirements, setCustomRequirements] = useState("");
+  const [generatedContent, setGeneratedContent] = useState<{
+    img_url: string;
+    text: string;
+  } | null>(null);
+  const [task, setTask] = useState<TaskCardProps | null>(null);
+  
+  useEffect(() => {
+    // Check if there's a task passed from marketplace
+    if (location.state && location.state.selectedTask) {
+      setTask(location.state.selectedTask);
+    }
+  }, [location.state]);
+  
+  const generateContent = async () => {
+    try {
+      // Prepare request payload
+      const payload = {
+        workflow_id: "7491960694519169078",
+        parameters: {
+          brand_brief: task ? `${task.brand} - ${task.brief}` : "无品牌任务",
+          hotspot: selectedTrends.join("、"),
+          account_info: document.querySelector('[data-info="account-info"]')?.textContent || "",
+          text_style: customRequirements,
+          template: selectedTemplate || ""
+        }
+      };
+
+      // Call Coze API
+      const response = await fetch("https://api.coze.cn/v1/workflow/run", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer pat_3tnCAPW9JAYvDu4NHIhvlmPUgDx4eYBWqQjdDKbDQgHihhh1yyDDhHPKUVDynzn8",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      if (result.code === 0) {
+        // Parse the data field which contains the response in JSON string format
+        const outputData = JSON.parse(result.data);
+        setGeneratedContent({
+          img_url: outputData.img_url || "",
+          text: outputData.text || ""
+        });
+        return true;
+      } else {
+        throw new Error(`API error: ${result.msg}`);
+      }
+    } catch (error) {
+      console.error("Error calling Coze API:", error);
+      throw error;
+    }
+  };
   
   const handleGenerate = async () => {
     setGenerating(true);
     
     try {
-      // Content will be generated in ContentPreview component
-      setContentReady(true);
+      // For demo purposes, we'll just set contentReady to true
+      // In a real app, we would make the API call to generate content
+      const success = await generateContent();
+      if (success) {
+        setContentReady(true);
+        toast.success("内容生成成功");
+      }
     } catch (error) {
       console.error("Error generating content:", error);
       toast.error("生成内容时出错，请重试");
@@ -43,7 +110,7 @@ const StudioPage: React.FC = () => {
       <h1 className="text-2xl font-bold text-nova-dark-gray mb-6">创作台</h1>
       
       <div className="grid grid-cols-3 gap-6 mb-6">
-        <TaskPanel />
+        <TaskPanel initialTask={task} />
         <TrendingPanel onSelectTrends={handleTrendSelect} />
         <AccountPanel />
       </div>
@@ -69,6 +136,7 @@ const StudioPage: React.FC = () => {
               selectedTrends={selectedTrends}
               selectedTemplate={selectedTemplate}
               customRequirements={customRequirements}
+              generatedContent={generatedContent}
             />
           ) : (
             <div className="bg-white rounded-2xl shadow-sm h-full flex items-center justify-center">
