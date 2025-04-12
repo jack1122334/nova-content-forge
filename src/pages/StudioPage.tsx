@@ -10,9 +10,11 @@ import TemplateSelector from "@/components/studio/TemplateSelector";
 import CustomRequirements from "@/components/studio/CustomRequirements";
 import ContentPreview from "@/components/studio/ContentPreview";
 import { TaskCardProps } from "@/components/marketplace/TaskCard";
+import { useAuth } from "@/context/AuthContext";
 
 const StudioPage: React.FC = () => {
   const location = useLocation();
+  const { profile } = useAuth();
   const [generating, setGenerating] = React.useState(false);
   const [contentReady, setContentReady] = React.useState(false);
   const [selectedTrends, setSelectedTrends] = useState<string[]>([]);
@@ -23,6 +25,7 @@ const StudioPage: React.FC = () => {
     text: string;
   } | null>(null);
   const [task, setTask] = useState<TaskCardProps | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
   
   useEffect(() => {
     // Check if there's a task passed from marketplace
@@ -33,17 +36,26 @@ const StudioPage: React.FC = () => {
   
   const generateContent = async () => {
     try {
+      // Clear any previous errors
+      setApiError(null);
+      
+      // Get the account info element content
+      const accountInfoElement = document.querySelector('[data-info="account-info"]');
+      const accountInfo = accountInfoElement?.textContent || "";
+      
       // Prepare request payload
       const payload = {
         workflow_id: "7491960694519169078",
         parameters: {
           brand_brief: task ? `${task.brand} - ${task.brief}` : "无品牌任务",
-          hotspot: selectedTrends.join("、"),
-          account_info: document.querySelector('[data-info="account-info"]')?.textContent || "",
-          text_style: customRequirements,
+          hotspot: selectedTrends.length > 0 ? selectedTrends.join("、") : "",
+          account_info: accountInfo,
+          text_style: customRequirements || "",
           template: selectedTemplate || ""
         }
       };
+
+      console.log("Sending Coze API request with payload:", payload);
 
       // Call Coze API
       const response = await fetch("https://api.coze.cn/v1/workflow/run", {
@@ -56,24 +68,41 @@ const StudioPage: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`);
+        const errorText = await response.text();
+        console.error(`API request failed with status ${response.status}:`, errorText);
+        throw new Error(`API请求失败 (状态码: ${response.status})`);
       }
 
       const result = await response.json();
+      console.log("Coze API response:", result);
       
       if (result.code === 0) {
-        // Parse the data field which contains the response in JSON string format
-        const outputData = JSON.parse(result.data);
-        setGeneratedContent({
-          img_url: outputData.img_url || "",
-          text: outputData.text || ""
-        });
-        return true;
+        try {
+          // Parse the data field which contains the response in JSON string format
+          const outputData = JSON.parse(result.data);
+          console.log("Parsed output data:", outputData);
+          
+          if (!outputData.img_url || !outputData.text) {
+            console.error("Missing required fields in API response:", outputData);
+            throw new Error("API返回的数据格式不正确");
+          }
+          
+          setGeneratedContent({
+            img_url: outputData.img_url,
+            text: outputData.text
+          });
+          return true;
+        } catch (parseError) {
+          console.error("Error parsing API response data:", parseError, result.data);
+          throw new Error("解析API返回数据时出错");
+        }
       } else {
-        throw new Error(`API error: ${result.msg}`);
+        console.error("API error with code:", result.code, "message:", result.msg);
+        throw new Error(`API错误: ${result.msg || `错误代码 ${result.code}`}`);
       }
     } catch (error) {
       console.error("Error calling Coze API:", error);
+      setApiError(error instanceof Error ? error.message : "未知错误");
       throw error;
     }
   };
@@ -82,8 +111,6 @@ const StudioPage: React.FC = () => {
     setGenerating(true);
     
     try {
-      // For demo purposes, we'll just set contentReady to true
-      // In a real app, we would make the API call to generate content
       const success = await generateContent();
       if (success) {
         setContentReady(true);
@@ -91,7 +118,7 @@ const StudioPage: React.FC = () => {
       }
     } catch (error) {
       console.error("Error generating content:", error);
-      toast.error("生成内容时出错，请重试");
+      toast.error(`生成内容时出错: ${apiError || "请重试"}`);
     } finally {
       setGenerating(false);
     }
@@ -109,13 +136,13 @@ const StudioPage: React.FC = () => {
     <div>
       <h1 className="text-2xl font-bold text-nova-dark-gray mb-6">创作台</h1>
       
-      <div className="grid grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <TaskPanel initialTask={task} />
         <TrendingPanel onSelectTrends={handleTrendSelect} />
         <AccountPanel />
       </div>
       
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-6">
           <TemplateSelector onSelectTemplate={handleTemplateSelect} />
           <CustomRequirements onChange={setCustomRequirements} />
@@ -128,6 +155,13 @@ const StudioPage: React.FC = () => {
               {generating ? "内容生成中..." : "内容生成"}
             </Button>
           </div>
+          
+          {apiError && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+              <p className="font-medium">API错误:</p>
+              <p>{apiError}</p>
+            </div>
+          )}
         </div>
         
         <div className="h-full">

@@ -2,9 +2,11 @@
 import React, { useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/context/AuthContext";
 
 const AccountPanel: React.FC = () => {
   const [usePersona, setUsePersona] = useState(true);
+  const { profile } = useAuth();
   
   return (
     <div className="bg-white rounded-2xl shadow-sm p-6 h-full">
@@ -13,9 +15,13 @@ const AccountPanel: React.FC = () => {
         <div>
           <h4 className="text-sm font-medium text-nova-gray mb-2">绑定账号</h4>
           <div className="flex items-center">
-            <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=60&h=60&auto=format&fit=crop&crop=faces" alt="Profile" className="w-10 h-10 rounded-full mr-3" />
+            <img 
+              src={profile?.avatar_url || "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=60&h=60&auto=format&fit=crop&crop=faces"} 
+              alt="Profile" 
+              className="w-10 h-10 rounded-full mr-3" 
+            />
             <div>
-              <p className="text-sm font-medium text-nova-dark-gray">@设计生活家</p>
+              <p className="text-sm font-medium text-nova-dark-gray">@{profile?.username || "设计生活家"}</p>
               <p className="text-xs text-nova-gray">小红书 · 4.2k 粉丝</p>
             </div>
           </div>
@@ -31,7 +37,10 @@ const AccountPanel: React.FC = () => {
               </Label>
             </div>
           </div>
-          <p className="text-sm text-nova-dark-gray">
+          <p 
+            className="text-sm text-nova-dark-gray"
+            data-info="account-info"
+          >
             80后都市女性，来自上海，月收入2.5-3万，热爱家居设计和生活美学。毕业于知名艺术院校，现从事室内设计工作，对色彩搭配和空间布局有独特见解。周末喜欢探店、逛展览，分享高性价比的居家好物和装饰灵感。擅长将简约风与温馨感结合，打造舒适实用的生活空间。热衷分享居家改造、收纳技巧和艺术摆件，致力于用设计提升日常生活品质。
           </p>
         </div>

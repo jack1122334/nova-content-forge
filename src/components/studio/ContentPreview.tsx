@@ -3,6 +3,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { toast } from "sonner";
 
 interface ContentPreviewProps {
   selectedTrends: string[];
@@ -20,34 +21,41 @@ const ContentPreview: React.FC<ContentPreviewProps> = ({
   customRequirements,
   generatedContent
 }) => {
-  // Mock data for the preview
-  const mockHtml = generatedContent?.img_url || "https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=600&h=800";
-  const mockText = generatedContent?.text || `# 刚入手的XXXX护手霜，这个秋冬不干燥！✨
+  const handleCopyText = () => {
+    if (generatedContent?.text) {
+      navigator.clipboard.writeText(generatedContent.text);
+      toast.success("文本已复制到剪贴板");
+    }
+  };
 
-最近天气转凉，双手已经开始泛红发干，打字都有点紧绷感😱 听朋友推荐入手了这款新出的护手霜，用了一周惊喜连连💕
-
-🔍产品细节：
-• 质地：轻薄不粘腻，涂抹后1分钟就能吸收
-• 香味：淡淡的茉莉花香，不会过于浓烈，很适合日常
-• 保湿力：一天涂2-3次，手部干燥问题明显改善
-• 便携性：小小一支放包里完全不占地方
-
-💪优点：
-✅吸收快速，不影响用手机和电脑
-✅保湿效果持久，用后皮肤柔软有弹性
-✅香味优雅，不会过于甜腻
-✅价格亲民，性价比很高
-
-⚠️缺点：
-❌包装略简单，送人需要额外包装
-❌保湿效果虽好，但特别干燥的季节还需勤涂
-
-🌟真心推荐给：
-• 经常用电脑手部干燥的上班族
-• 怕粘腻感但又需要保湿的挑剔星人
-• 喜欢随身携带护手产品的朋友
-
-姐妹们有什么好用的护手霜也推荐给我呀～ 这个秋冬一起告别干裂手🙌🏻`;
+  // Convert markdown to HTML (basic implementation)
+  const markdownToHtml = (markdown: string) => {
+    if (!markdown) return "";
+    
+    // Convert headers
+    let html = markdown.replace(/^# (.*$)/gm, '<h1 class="text-xl font-bold my-2">$1</h1>');
+    html = html.replace(/^## (.*$)/gm, '<h2 class="text-lg font-bold my-2">$1</h2>');
+    
+    // Convert bold
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    
+    // Convert italic
+    html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    
+    // Convert bullet points
+    html = html.replace(/^\* (.*$)/gm, '<li class="ml-4">$1</li>');
+    html = html.replace(/^• (.*$)/gm, '<li class="ml-4">$1</li>');
+    
+    // Convert line breaks
+    html = html.replace(/\n/g, '<br/>');
+    
+    // Convert emoji indicators
+    html = html.replace(/✅/g, '<span class="text-green-500">✅</span>');
+    html = html.replace(/❌/g, '<span class="text-red-500">❌</span>');
+    html = html.replace(/💕|❤️|💪|🔍|🌟|⚠️|👉|😱|🙌🏻/g, (match) => `<span>${match}</span>`);
+    
+    return html;
+  };
 
   return (
     <div className="bg-white rounded-2xl shadow-sm p-6 h-full">
@@ -65,12 +73,18 @@ const ContentPreview: React.FC<ContentPreviewProps> = ({
             <div className="bg-gray-50 rounded-lg p-4 h-full overflow-auto">
               <div className="max-w-[375px] mx-auto bg-white rounded-xl overflow-hidden shadow">
                 <img 
-                  src={mockHtml} 
+                  src={generatedContent?.img_url || "https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=600&h=800"} 
                   alt="Preview" 
                   className="w-full h-auto"
+                  onError={(e) => {
+                    console.error("Image failed to load:", generatedContent?.img_url);
+                    e.currentTarget.src = "https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=600&h=800";
+                  }}
                 />
                 <div className="p-4">
-                  <div dangerouslySetInnerHTML={{ __html: mockText.replace(/\n/g, '<br/>') }} />
+                  <div dangerouslySetInnerHTML={{ 
+                    __html: markdownToHtml(generatedContent?.text || "") 
+                  }} />
                 </div>
               </div>
             </div>
@@ -85,12 +99,12 @@ const ContentPreview: React.FC<ContentPreviewProps> = ({
         <TabsContent value="text" className="h-[calc(100%-40px)] flex flex-col">
           <ScrollArea className="flex-1 mb-4 rounded-lg border p-4">
             <div className="whitespace-pre-line">
-              {mockText}
+              {generatedContent?.text || "暂无内容"}
             </div>
           </ScrollArea>
           
           <div className="flex space-x-3">
-            <Button variant="outline" className="flex-1">复制文本</Button>
+            <Button variant="outline" className="flex-1" onClick={handleCopyText}>复制文本</Button>
             <Button className="flex-1 nova-button">调整内容</Button>
           </div>
         </TabsContent>
@@ -98,11 +112,21 @@ const ContentPreview: React.FC<ContentPreviewProps> = ({
         <TabsContent value="images" className="h-[calc(100%-40px)] flex flex-col">
           <div className="flex-1 overflow-hidden mb-4">
             <div className="grid grid-cols-2 gap-4 h-full overflow-auto p-4 border rounded-lg">
-              <img 
-                src={mockHtml} 
-                alt="Image 1" 
-                className="w-full h-auto rounded-lg border"
-              />
+              {generatedContent?.img_url ? (
+                <img 
+                  src={generatedContent.img_url} 
+                  alt="Generated image" 
+                  className="w-full h-auto rounded-lg border"
+                  onError={(e) => {
+                    console.error("Image failed to load:", generatedContent.img_url);
+                    e.currentTarget.src = "https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=600&h=800";
+                  }}
+                />
+              ) : (
+                <div className="border rounded-lg flex items-center justify-center bg-gray-50 text-gray-400 p-4">
+                  暂无生成的图片
+                </div>
+              )}
               <div className="border rounded-lg flex items-center justify-center bg-gray-50 text-gray-400">
                 生成更多图片素材
               </div>
