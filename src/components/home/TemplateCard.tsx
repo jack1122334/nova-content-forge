@@ -13,7 +13,6 @@ export interface TemplateCardProps {
   isFree: boolean;
   platform: string;
   isFavorite?: boolean;
-  html_content?: string;
   onToggleFavorite?: () => void;
 }
 
@@ -26,7 +25,6 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
   isFree,
   platform,
   isFavorite = false,
-  html_content,
   onToggleFavorite,
 }) => {
   const handleToggleFavorite = (e: React.MouseEvent) => {
@@ -38,27 +36,15 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
     }
   };
   
-  // Function to render HTML content safely
-  const renderHtmlContent = (htmlContent: string) => {
-    return { __html: htmlContent || '' };
-  };
-  
   return (
     <div className="nova-card">
       <div className="relative overflow-hidden">
         <AspectRatio ratio={3/4}>
-          {html_content ? (
-            <div 
-              className="w-full h-full overflow-hidden" 
-              dangerouslySetInnerHTML={renderHtmlContent(html_content)}
-            />
-          ) : (
-            <img 
-              src={image} 
-              alt={title} 
-              className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-            />
-          )}
+          <img 
+            src={image} 
+            alt={title} 
+            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+          />
         </AspectRatio>
         <div className="absolute top-2 right-2">
           <span className="text-xs px-2 py-1 bg-white bg-opacity-90 rounded-full text-nova-dark-gray">
