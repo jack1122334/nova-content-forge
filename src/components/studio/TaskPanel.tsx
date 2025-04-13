@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { TaskCardProps } from "@/components/marketplace/TaskCard";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +16,21 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange, 
   const [availableTasks, setAvailableTasks] = useState<TaskCardProps[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  
+  // Default task as fallback
+  const defaultTask = {
+    id: "3",
+    brand: "上海家化",
+    category: "护肤/快消",
+    brief: "新品护手霜种草",
+    budget: "15000元",
+    platform: "抖音",
+    reward: "每10赞/100观看 3元",
+    type: "奖金任务",
+    progress: 65,
+    participants: 58,
+    description: "上海家化新品护手霜上市，需要创作者基于实际使用感受进行测评种草。强调产品的滋润效果、吸收速度、不油腻的特点，以及独特的香氛体验。推荐展示使用前后的肌肤状态对比。"
+  };
   
   useEffect(() => {
     const fetchTasks = async () => {
@@ -60,33 +76,42 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange, 
           
           setAvailableTasks(formattedTasks);
           
-          // If we have an initialTask from props, use it
+          // Task selection priority: 
+          // 1. initialTask from props
+          // 2. recentTask from localStorage
+          // 3. first task from the fetched list
+          let selectedTask: TaskCardProps | null = null;
+          
           if (initialTask) {
-            setTask(initialTask);
-            setSelectedTaskId(initialTask.id);
-            if (onTaskDetailChange && initialTask.description) {
-              onTaskDetailChange(initialTask.description);
-            }
-            // Also notify parent component
-            if (onTaskChange) {
-              onTaskChange(initialTask);
-            }
+            selectedTask = initialTask;
+            console.log("Using initialTask from props:", initialTask);
+          } else if (recentTask) {
+            selectedTask = recentTask;
+            console.log("Using recent task from localStorage:", recentTask);
+          } else if (formattedTasks.length > 0) {
+            selectedTask = formattedTasks[0];
+            console.log("Using first available task:", selectedTask);
           }
-          // Otherwise if we have a recent task from localStorage, use it
-          else if (recentTask) {
-            setTask(recentTask);
-            setSelectedTaskId(recentTask.id);
-            if (onTaskDetailChange && recentTask.description) {
-              onTaskDetailChange(recentTask.description);
+          
+          if (selectedTask) {
+            setTask(selectedTask);
+            setSelectedTaskId(selectedTask.id);
+            
+            // Ensure we have the task description
+            if (!selectedTask.description && selectedTask.id) {
+              await fetchTaskDescription(selectedTask.id);
+            } else if (onTaskDetailChange && selectedTask.description) {
+              onTaskDetailChange(selectedTask.description);
             }
-            // Also notify parent component
+            
+            // Notify parent about task selection
             if (onTaskChange) {
-              onTaskChange(recentTask);
+              onTaskChange(selectedTask);
             }
+            
+            // Save to localStorage
+            localStorage.setItem('recentlySelectedTask', JSON.stringify(selectedTask));
           }
-        } else {
-          // If no tasks in database, seed from MarketplacePage mock data
-          console.log("No tasks found in database, will seed from mock data on next MarketplacePage visit");
         }
       } catch (error) {
         console.error("Error in fetchTasks:", error);
@@ -96,28 +121,6 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange, 
     };
     
     fetchTasks();
-  }, [initialTask, onTaskDetailChange, onTaskChange]);
-  
-  useEffect(() => {
-    if (initialTask && initialTask !== task) {
-      setTask(initialTask);
-      setSelectedTaskId(initialTask.id);
-      console.log("Task set in TaskPanel from initialTask:", initialTask);
-      
-      // Save this task as the recently selected task
-      localStorage.setItem('recentlySelectedTask', JSON.stringify(initialTask));
-      
-      if (!initialTask.description && initialTask.id) {
-        fetchTaskDescription(initialTask.id);
-      } else if (onTaskDetailChange && initialTask.description) {
-        onTaskDetailChange(initialTask.description);
-      }
-      
-      // Notify parent component about the task change
-      if (onTaskChange) {
-        onTaskChange(initialTask);
-      }
-    }
   }, [initialTask, onTaskDetailChange, onTaskChange]);
   
   const fetchTaskDescription = async (taskId: string) => {
@@ -160,8 +163,10 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange, 
   const handleTaskChange = (taskId: string) => {
     setSelectedTaskId(taskId);
     const selectedTask = availableTasks.find(t => t.id === taskId);
+    
     if (selectedTask) {
       setTask(selectedTask);
+      console.log("Task changed by user selection:", selectedTask);
       
       // Save this task as the recently selected task
       localStorage.setItem('recentlySelectedTask', JSON.stringify(selectedTask));
@@ -179,32 +184,8 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange, 
     }
   };
   
-  const defaultTask = {
-    id: "3",
-    brand: "上海家化",
-    category: "护肤/快消",
-    brief: "新品护手霜种草",
-    budget: "15000元",
-    platform: "抖音",
-    reward: "每10赞/100观看 3元",
-    type: "奖金任务",
-    progress: 65,
-    participants: 58,
-    description: "上海家化新品护手霜上市，需要创作者基于实际使用感受进行测评种草。强调产品的滋润效果、吸收速度、不油腻的特点，以及独特的香氛体验。推荐展示使用前后的肌肤状态对比。"
-  };
-  
+  // Determine the current task to display - using the selected task or default
   const currentTask = task || defaultTask;
-  
-  useEffect(() => {
-    if (onTaskDetailChange && currentTask.description) {
-      onTaskDetailChange(currentTask.description);
-    }
-    
-    // If we have a task and onTaskChange is provided, notify parent component
-    if (task && onTaskChange) {
-      onTaskChange(currentTask);
-    }
-  }, [currentTask, onTaskDetailChange, onTaskChange]);
   
   return (
     <div className="bg-white rounded-2xl shadow-sm p-6 h-full">

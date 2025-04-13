@@ -36,20 +36,8 @@ const StudioPage: React.FC = () => {
     if (location.state && location.state.selectedTask) {
       setTask(location.state.selectedTask);
       console.log("Task set from location state:", location.state.selectedTask);
-    } else {
-      // Check if there's a recently selected task in localStorage
-      const recentTaskJson = localStorage.getItem('recentlySelectedTask');
-      if (recentTaskJson) {
-        try {
-          const recentTask = JSON.parse(recentTaskJson);
-          console.log("Loading task from localStorage:", recentTask);
-          setTask(recentTask);
-          if (recentTask.description) {
-            setTaskDetailDescription(recentTask.description);
-          }
-        } catch (e) {
-          console.error("Error parsing recent task from localStorage:", e);
-        }
+      if (location.state.selectedTask.description) {
+        setTaskDetailDescription(location.state.selectedTask.description);
       }
     }
   }, [location.state]);
@@ -63,26 +51,24 @@ const StudioPage: React.FC = () => {
       const accountInfoElement = document.querySelector('[data-info="account-info"]');
       const accountInfo = accountInfoElement?.textContent || "";
       
-      // Construct brand brief from current task only
+      // Construct brand brief from current task
       let brandBrief = "无品牌任务";
       
       if (task) {
-        // Combine brand, brief and description into a single string for the current task only
+        // Format: brand - brief: description
         brandBrief = `${task.brand} - ${task.brief}`;
         if (taskDetailDescription) {
           brandBrief += `: ${taskDetailDescription}`;
         }
-        console.log("Using task for brand brief:", task);
+        console.log("Using task for brand brief:", brandBrief);
       } else {
         console.log("No task available for brand brief");
       }
       
-      console.log("Sending brand brief to API:", brandBrief);
-      
       // Get selected trends
       const hotspots = selectedTrends.length > 0 ? selectedTrends.join("、") : "";
       
-      // Prepare request payload - simplified template handling
+      // Prepare request payload
       const payload = {
         workflow_id: "7492378369356333090",
         parameters: {
@@ -90,7 +76,7 @@ const StudioPage: React.FC = () => {
           hotspot: hotspots,
           account_info: accountInfo,
           text_style: customRequirements || "",
-          // Only pass the HTML content in the template field when using a template
+          // Only include template HTML content when using template option
           template: styleOption === "use-template" && selectedTemplateHtml ? selectedTemplateHtml : ""
         }
       };
@@ -149,6 +135,13 @@ const StudioPage: React.FC = () => {
   
   const handleGenerate = async () => {
     setGenerating(true);
+    
+    // Validate task selection
+    if (!task) {
+      toast.error("请先选择一个品牌任务");
+      setGenerating(false);
+      return;
+    }
     
     // Validate template selection when using template option
     if (styleOption === "use-template" && !selectedTemplate) {
