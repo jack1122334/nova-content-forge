@@ -32,7 +32,6 @@ const StudioPage: React.FC = () => {
   const [styleOption, setStyleOption] = useState("generate-new");
   
   useEffect(() => {
-    // Check if there's a task passed from marketplace
     if (location.state && location.state.selectedTask) {
       setTask(location.state.selectedTask);
       console.log("Task set from location state:", location.state.selectedTask);
@@ -44,18 +43,14 @@ const StudioPage: React.FC = () => {
   
   const generateContent = async () => {
     try {
-      // Clear any previous errors
       setApiError(null);
       
-      // Get the account info element content
       const accountInfoElement = document.querySelector('[data-info="account-info"]');
       const accountInfo = accountInfoElement?.textContent || "";
       
-      // Construct brand brief from current task
       let brandBrief = "无品牌任务";
       
       if (task) {
-        // Format: brand - brief: description
         brandBrief = `${task.brand} - ${task.brief}`;
         if (taskDetailDescription) {
           brandBrief += `: ${taskDetailDescription}`;
@@ -65,10 +60,8 @@ const StudioPage: React.FC = () => {
         console.log("No task available for brand brief");
       }
       
-      // Get selected trends
       const hotspots = selectedTrends.length > 0 ? selectedTrends.join("、") : "";
       
-      // Prepare request payload
       const payload = {
         workflow_id: "7492378369356333090",
         parameters: {
@@ -76,14 +69,16 @@ const StudioPage: React.FC = () => {
           hotspot: hotspots,
           account_info: accountInfo,
           text_style: customRequirements || "",
-          // Only include template HTML content when using template option
           template: styleOption === "use-template" && selectedTemplateHtml ? selectedTemplateHtml : ""
         }
       };
 
+      console.log("Template selection mode:", styleOption);
+      console.log("Selected template ID:", selectedTemplate);
+      console.log("Selected template HTML:", selectedTemplateHtml);
       console.log("Sending Coze API request with payload:", payload);
+      console.log("Template parameter being sent:", payload.parameters.template);
 
-      // Call Coze API
       const response = await fetch("https://api.coze.cn/v1/workflow/run", {
         method: "POST",
         headers: {
@@ -104,7 +99,6 @@ const StudioPage: React.FC = () => {
       
       if (result.code === 0) {
         try {
-          // Parse the data field which contains the response in JSON string format
           const outputData = JSON.parse(result.data);
           console.log("Parsed output data:", outputData);
           
@@ -136,14 +130,12 @@ const StudioPage: React.FC = () => {
   const handleGenerate = async () => {
     setGenerating(true);
     
-    // Validate task selection
     if (!task) {
       toast.error("请先选择一个品牌任务");
       setGenerating(false);
       return;
     }
     
-    // Validate template selection when using template option
     if (styleOption === "use-template" && !selectedTemplate) {
       toast.error("请选择一个模板");
       setGenerating(false);
@@ -173,7 +165,12 @@ const StudioPage: React.FC = () => {
     if (styleOption === "use-template") {
       setSelectedTemplate(templateId);
       setSelectedTemplateHtml(htmlContent);
-      console.log("Selected template updated:", templateId, "with HTML:", htmlContent);
+      console.log("Selected template updated:", templateId, "with HTML content length:", htmlContent ? htmlContent.length : 0);
+      if (htmlContent) {
+        console.log("HTML content preview:", htmlContent.substring(0, 100) + "...");
+      } else {
+        console.log("WARNING: No HTML content received for template:", templateId);
+      }
     }
   };
   
