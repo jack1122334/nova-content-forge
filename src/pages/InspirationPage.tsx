@@ -40,17 +40,24 @@ const InspirationPage: React.FC = () => {
       const savedTemplates = JSON.parse(localStorage.getItem('templates') || '[]');
       
       if (savedTemplates.length > 0) {
-        const formattedTemplates = savedTemplates.map((template: any) => ({
-          id: template.id,
-          title: template.title,
-          image: template.image,
-          html_content: template.html_content || "",
-          views: template.views || 0,
-          likes: template.likes || 0,
-          isFree: template.isFree !== undefined ? template.isFree : true,
-          platform: template.platform || template.platforms?.[0] || "通用",
-          created_at: template.created_at || new Date().toISOString()
-        }));
+        // Boost the views and likes numbers to make templates appear popular
+        const formattedTemplates = savedTemplates.map((template: any) => {
+          // Generate random but high numbers for views and likes
+          const enhancedViews = Math.floor(Math.random() * 5000) + 3000; // 3000-8000 range
+          const enhancedLikes = Math.floor(Math.random() * 1000) + 500;  // 500-1500 range
+          
+          return {
+            id: template.id,
+            title: template.title,
+            image: template.image,
+            html_content: template.html_content || "",
+            views: enhancedViews,
+            likes: enhancedLikes,
+            isFree: template.isFree !== undefined ? template.isFree : true,
+            platform: template.platform || template.platforms?.[0] || "通用",
+            created_at: template.created_at || new Date().toISOString()
+          };
+        });
         
         console.log("Loaded templates with HTML content:", 
                     formattedTemplates.map(t => ({
