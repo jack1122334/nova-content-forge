@@ -13,6 +13,7 @@ export interface TaskCardProps {
   progress: number;
   participants: number;
   requirement?: string;
+  description?: string;
   onClick?: () => void;
 }
 

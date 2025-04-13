@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { TaskCardProps } from "@/components/marketplace/TaskCard";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TaskPanelProps {
   initialTask?: TaskCardProps | null;
@@ -14,8 +15,35 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange }
     if (initialTask) {
       setTask(initialTask);
       console.log("Task set in TaskPanel:", initialTask);
+      
+      // If the task doesn't have a description but has an ID, try to fetch it
+      if (!initialTask.description && initialTask.id) {
+        fetchTaskDescription(initialTask.id);
+      }
     }
   }, [initialTask]);
+  
+  const fetchTaskDescription = async (taskId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('brand_tasks')
+        .select('description')
+        .eq('id', taskId)
+        .single();
+      
+      if (error) {
+        console.error("Error fetching task description:", error);
+        return;
+      }
+      
+      if (data && data.description) {
+        // Update the task with the description
+        setTask(prevTask => prevTask ? {...prevTask, description: data.description} : null);
+      }
+    } catch (error) {
+      console.error("Error in fetchTaskDescription:", error);
+    }
+  };
   
   // If no task is provided, use default
   const defaultTask = {
@@ -29,19 +57,17 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange }
     type: "奖金任务",
     progress: 65,
     participants: 58,
+    description: "上海家化新品护手霜上市，需要创作者基于实际使用感受进行测评种草。强调产品的滋润效果、吸收速度、不油腻的特点，以及独特的香氛体验。推荐展示使用前后的肌肤状态对比。"
   };
   
   const currentTask = task || defaultTask;
   
-  // 任务详细说明
-  const taskDetailDescription = "通过真实体验分享，展示产品的滋润效果和使用感受。重点突出产品快速吸收、不粘腻的特点，以及独特的香氛体验。";
-  
   // 当组件挂载或任务改变时，提供详细说明给父组件
   useEffect(() => {
-    if (onTaskDetailChange) {
-      onTaskDetailChange(taskDetailDescription);
+    if (onTaskDetailChange && currentTask.description) {
+      onTaskDetailChange(currentTask.description);
     }
-  }, [task, onTaskDetailChange]);
+  }, [currentTask, onTaskDetailChange]);
   
   return (
     <div className="bg-white rounded-2xl shadow-sm p-6 h-full">
@@ -53,7 +79,7 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange }
         </div>
         <div className="space-y-2 mb-4">
           <p className="text-sm text-nova-dark-gray" data-task-detail="true">
-            {taskDetailDescription}
+            {currentTask.description || "无详细说明"}
           </p>
         </div>
         <div className="flex justify-between text-sm">

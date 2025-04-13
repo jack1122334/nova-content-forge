@@ -51,6 +51,13 @@ const TaskDetail: React.FC<TaskDetailProps> = ({ task, onClose }) => {
             <p className="text-nova-dark-gray">{task.brief}</p>
           </div>
           
+          {task.description && (
+            <div>
+              <h3 className="text-sm font-medium text-nova-gray mb-1">详细背景</h3>
+              <p className="text-nova-dark-gray text-sm">{task.description}</p>
+            </div>
+          )}
+          
           <div className="grid grid-cols-2 gap-4">
             <div>
               <h3 className="text-sm font-medium text-nova-gray mb-1">平台</h3>
