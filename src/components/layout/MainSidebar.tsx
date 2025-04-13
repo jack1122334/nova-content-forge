@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
@@ -32,8 +33,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton,
-  SidebarSeparator,
-  useSidebar
+  SidebarSeparator
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -53,21 +53,20 @@ interface MainSidebarProps {
 const MainSidebar: React.FC<MainSidebarProps> = ({ userType, setUserType }) => {
   const location = useLocation();
   const { user, profile, signOut } = useAuth();
-  const { state, setOpen } = useSidebar();
-  const isCollapsed = state === "collapsed";
+  const [isCollapsed, setIsCollapsed] = useState(false);
   
   // Auto-collapse sidebar on mobile
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) {
-        setOpen(false);
+        setIsCollapsed(true);
       }
     };
     
     handleResize(); // Initial check
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [setOpen]);
+  }, []);
   
   const generalNavItems = [
     { name: "首页", path: "/", icon: Home },
@@ -88,7 +87,7 @@ const MainSidebar: React.FC<MainSidebarProps> = ({ userType, setUserType }) => {
   };
 
   const toggleSidebar = () => {
-    setOpen(!isCollapsed);
+    setIsCollapsed(!isCollapsed);
   };
 
   return (
@@ -97,7 +96,7 @@ const MainSidebar: React.FC<MainSidebarProps> = ({ userType, setUserType }) => {
         variant="floating" 
         className={cn(
           "backdrop-blur-sm bg-white/70 border-r border-gray-200/50 text-nova-dark-gray transition-all duration-300",
-          isCollapsed ? "md:w-16" : "md:w-64"
+          isCollapsed && "md:w-16"
         )}
       >
         <SidebarRail className="hidden" />
