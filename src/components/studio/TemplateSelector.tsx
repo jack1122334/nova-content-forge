@@ -45,7 +45,13 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ onSelectTemplate, s
       
       setFavoriteTemplates(favorites);
       
-      console.log("Loaded favorite templates with HTML content:", favorites);
+      // Log templates with their HTML content for debugging
+      console.log("Loaded favorite templates with HTML content:", favorites.map(t => ({
+        id: t.id,
+        title: t.title,
+        hasHtml: !!t.html_content,
+        htmlLength: t.html_content ? t.html_content.length : 0
+      })));
       
     } catch (error) {
       console.error("Error fetching favorite templates:", error);
@@ -58,7 +64,13 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ onSelectTemplate, s
 
   const handleTemplateSelect = (templateId: string, htmlContent?: string) => {
     if (onSelectTemplate) {
-      console.log("Selected template:", templateId, "HTML content:", htmlContent);
+      // Log complete HTML content for debugging
+      console.log("Selected template:", templateId);
+      console.log("HTML content available:", !!htmlContent);
+      if (htmlContent) {
+        console.log("HTML content length:", htmlContent.length);
+      }
+      
       onSelectTemplate(templateId, htmlContent);
     }
   };

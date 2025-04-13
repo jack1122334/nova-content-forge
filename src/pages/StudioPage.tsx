@@ -50,15 +50,47 @@ const StudioPage: React.FC = () => {
       const accountInfo = accountInfoElement?.textContent || "";
       
       // Get brand brief info with detailed description
-      const brandBrief = task 
-        ? `${task.brand} - ${task.brief}${taskDetailDescription ? `: ${taskDetailDescription}` : ""}`
-        : "无品牌任务";
-      
-      console.log("Sending brand brief to API:", brandBrief);
+      let brandBrief = "无品牌任务";
+      if (task) {
+        brandBrief = `${task.brand} - ${task.brief}`;
+        if (taskDetailDescription) {
+          brandBrief += `: ${taskDetailDescription}`;
+        }
+        console.log("Sending brand brief to API:", brandBrief);
+      }
       
       // Get selected trends
       const hotspots = selectedTrends.length > 0 ? selectedTrends.join("、") : "";
       
+      // Prepare template parameters - only send when explicitly using template
+      let templateParams = {};
+      if (styleOption === "use-template" && selectedTemplate) {
+        if (selectedTemplateHtml) {
+          templateParams = {
+            template: selectedTemplate,
+            template_html: selectedTemplateHtml
+          };
+        } else {
+          // Try to fetch the template HTML from localStorage if not already available
+          const allTemplates = JSON.parse(localStorage.getItem('templates') || '[]');
+          const templateData = allTemplates.find((t: any) => t.id === selectedTemplate);
+          if (templateData && templateData.html_content) {
+            templateParams = {
+              template: selectedTemplate,
+              template_html: templateData.html_content
+            };
+            // Also update state for future reference
+            setSelectedTemplateHtml(templateData.html_content);
+          } else {
+            console.warn("Selected template has no HTML content:", selectedTemplate);
+            templateParams = { template: selectedTemplate };
+          }
+        }
+      }
+      
+      // Log complete template info
+      console.log("Template parameters:", templateParams);
+
       // Prepare request payload
       const payload = {
         workflow_id: "7492378369356333090",
@@ -67,8 +99,7 @@ const StudioPage: React.FC = () => {
           hotspot: hotspots,
           account_info: accountInfo,
           text_style: customRequirements || "",
-          template: styleOption === "use-template" && selectedTemplate ? selectedTemplate : "",
-          template_html: styleOption === "use-template" && selectedTemplateHtml ? selectedTemplateHtml : ""
+          ...templateParams
         }
       };
 
