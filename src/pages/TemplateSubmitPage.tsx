@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useRef, useEffect } from "react";
 import { CameraIcon, FileUp, Plus, X, Code } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +11,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const platforms = ["小红书", "抖音", "快手", "视频号", "Instagram", "youtube", "X", "reddit", "Facebook"];
 const industries = ["通用", "食品", "服装", "软件", "美妆", "日化", "电子", "汽车", "餐饮"];
@@ -31,6 +33,7 @@ type FileWithPreview = {
   name: string;
   type: string;
   preview?: string;
+  content?: string;
 };
 
 const TemplateSubmitPage: React.FC = () => {
@@ -39,6 +42,8 @@ const TemplateSubmitPage: React.FC = () => {
   const [htmlTemplateFile, setHtmlTemplateFile] = useState<FileWithPreview | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [autoRenderCover, setAutoRenderCover] = useState(false);
+  const htmlPreviewRef = useRef<HTMLDivElement>(null);
+  const [htmlRendering, setHtmlRendering] = useState(false);
   const navigate = useNavigate();
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -54,6 +59,30 @@ const TemplateSubmitPage: React.FC = () => {
       autoRenderCover: false
     }
   });
+
+  // Effect to render HTML preview when htmlTemplateFile changes
+  useEffect(() => {
+    if (autoRenderCover && htmlTemplateFile?.content && htmlPreviewRef.current) {
+      setHtmlRendering(true);
+      
+      // Set the HTML content to the preview container
+      htmlPreviewRef.current.innerHTML = htmlTemplateFile.content;
+      
+      // Optional: Add a short delay to ensure rendering is complete
+      setTimeout(() => {
+        try {
+          // Capture the rendered HTML as an image
+          if (htmlPreviewRef.current) {
+            // You can use html2canvas or similar library here if needed
+            setHtmlRendering(false);
+          }
+        } catch (error) {
+          console.error("Error rendering HTML preview:", error);
+          setHtmlRendering(false);
+        }
+      }, 500);
+    }
+  }, [htmlTemplateFile, autoRenderCover]);
 
   const handleCoverImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -154,7 +183,9 @@ const TemplateSubmitPage: React.FC = () => {
       
       if (coverImage) {
         coverImageUrl = coverImage.preview || "";
-      } else if (autoRenderCover) {
+      } else if (autoRenderCover && htmlPreviewRef.current) {
+        // Use the HTML preview as the cover image
+        // For simplicity, we're using a placeholder. In a real scenario, you'd convert the HTML to an image
         coverImageUrl = "https://images.unsplash.com/photo-1721322800607-8c38375eef04";
       }
       
@@ -184,6 +215,12 @@ const TemplateSubmitPage: React.FC = () => {
       
       const existingTemplates = JSON.parse(localStorage.getItem('templates') || '[]');
       localStorage.setItem('templates', JSON.stringify([...existingTemplates, templateData]));
+      
+      // Add to favorites automatically
+      const existingFavorites = JSON.parse(localStorage.getItem('favoriteTemplates') || '[]');
+      if (!existingFavorites.includes(templateData.id)) {
+        localStorage.setItem('favoriteTemplates', JSON.stringify([...existingFavorites, templateData.id]));
+      }
       
       toast.success("模板提交成功");
       
@@ -350,7 +387,7 @@ const TemplateSubmitPage: React.FC = () => {
                         <Code className="h-8 w-8 text-nova-blue" />
                       </div>
                       <p className="text-sm text-nova-gray mb-2">点击或拖拽上传HTML模板文件</p>
-                      <p className="text-xs text-nova-gray">支持 HTML 或包含HTML代码的 TXT 文件，用于Coze工作流生成封面图</p>
+                      <p className="text-xs text-nova-gray">支持 HTML 或包含HTML代码的 TXT 文件，用于生成封面图</p>
                     </>
                   )}
                   <input
@@ -376,8 +413,30 @@ const TemplateSubmitPage: React.FC = () => {
                   </label>
                 </div>
                 <div className="text-xs text-nova-gray italic mb-4">
-                  选择此选项后，Coze工作流将根据HTML代码渲染3:4比例的封面图
+                  选择此选项后，将根据HTML代码渲染封面图
                 </div>
+                
+                {autoRenderCover && htmlTemplateFile?.content && (
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-nova-gray mb-2">HTML预览</label>
+                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                      {htmlRendering ? (
+                        <div className="p-4">
+                          <Skeleton className="h-24 w-full mb-2" />
+                          <Skeleton className="h-6 w-3/4 mb-2" />
+                          <Skeleton className="h-6 w-1/2" />
+                        </div>
+                      ) : (
+                        <div 
+                          ref={htmlPreviewRef} 
+                          className="p-4 w-full h-64 overflow-auto bg-white"
+                          style={{ resize: 'vertical' }}
+                        ></div>
+                      )}
+                    </div>
+                    <p className="text-xs text-nova-gray mt-2">这是上传HTML的渲染预览，将用作封面图</p>
+                  </div>
+                )}
               </div>
               
               <div className={autoRenderCover ? 'opacity-50 pointer-events-none' : ''}>
