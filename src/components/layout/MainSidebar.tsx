@@ -44,7 +44,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface MainSidebarProps {
   userType: "personal" | "brand" | "agency";
@@ -100,7 +99,7 @@ const MainSidebar: React.FC<MainSidebarProps> = ({ userType, setUserType }) => {
           isCollapsed && "md:w-16"
         )}
       >
-        <SidebarRail />
+        <SidebarRail className="hidden" />
         <SidebarHeader className="flex flex-col gap-2 p-4">
           <div className="flex items-center justify-between">
             <Link to="/" className={cn("flex items-center", isCollapsed && "md:hidden")}>
@@ -136,7 +135,10 @@ const MainSidebar: React.FC<MainSidebarProps> = ({ userType, setUserType }) => {
                         <item.icon className="mr-3 h-5 w-5" />
                         <span className={cn(isCollapsed && "md:hidden")}>{item.name}</span>
                         {location.pathname === item.path && (
-                          <div className="absolute right-4 w-1 h-6 bg-gradient-to-b from-nova-blue to-nova-deep-purple rounded-full" />
+                          <div className={cn(
+                            "absolute right-4 w-1 h-6 bg-gradient-to-b from-nova-blue to-nova-deep-purple rounded-full",
+                            isCollapsed && "md:right-1"
+                          )} />
                         )}
                       </Link>
                     </SidebarMenuButton>
@@ -165,7 +167,10 @@ const MainSidebar: React.FC<MainSidebarProps> = ({ userType, setUserType }) => {
                       <userTypeNavItem.icon className="mr-3 h-5 w-5" />
                       <span className={cn(isCollapsed && "md:hidden")}>{userTypeNavItem.name}</span>
                       {location.pathname === userTypeNavItem.path && (
-                        <div className="absolute right-4 w-1 h-6 bg-gradient-to-b from-nova-blue to-nova-deep-purple rounded-full" />
+                        <div className={cn(
+                          "absolute right-4 w-1 h-6 bg-gradient-to-b from-nova-blue to-nova-deep-purple rounded-full",
+                          isCollapsed && "md:right-1"
+                        )} />
                       )}
                     </Link>
                   </SidebarMenuButton>
@@ -191,7 +196,6 @@ const MainSidebar: React.FC<MainSidebarProps> = ({ userType, setUserType }) => {
                     <SidebarMenuSubItem>
                       <SidebarMenuSubButton 
                         isActive={userType === "agency"}
-                        disabled
                         className="text-gray-400"
                         onClick={() => setUserType("agency")}
                       >
