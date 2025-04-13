@@ -95,7 +95,7 @@ const MainSidebar: React.FC<MainSidebarProps> = ({ userType, setUserType }) => {
       <Sidebar 
         variant="floating" 
         className={cn(
-          "backdrop-blur-sm bg-white/70 border-r border-gray-200/50 text-nova-dark-gray transition-all duration-300",
+          "backdrop-blur-md bg-white/5 border-r border-white/10 text-nova-dark-gray transition-all duration-300",
           isCollapsed && "md:w-16"
         )}
       >
@@ -109,7 +109,7 @@ const MainSidebar: React.FC<MainSidebarProps> = ({ userType, setUserType }) => {
               variant="ghost" 
               size="icon" 
               onClick={toggleSidebar} 
-              className="hover:bg-gray-200/50"
+              className="hover:bg-white/10 text-nova-dark-gray"
             >
               {isCollapsed ? <Menu className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
             </Button>
@@ -130,12 +130,15 @@ const MainSidebar: React.FC<MainSidebarProps> = ({ userType, setUserType }) => {
                     >
                       <Link to={item.path} className={cn(
                         "group flex items-center",
-                        location.pathname === item.path && "text-nova-blue"
+                        location.pathname === item.path ? "text-nova-blue" : "text-nova-dark-gray hover:text-nova-dark-gray/80"
                       )}>
                         <item.icon className="mr-3 h-5 w-5" />
                         <span className={cn(isCollapsed && "md:hidden")}>{item.name}</span>
                         {location.pathname === item.path && !isCollapsed && (
-                          <div className="absolute right-4 w-1 h-6 bg-gradient-to-b from-nova-blue to-nova-deep-purple rounded-full" />
+                          <div className={cn(
+                            "absolute right-4 w-1 h-6 bg-gradient-to-b from-nova-blue to-nova-deep-purple rounded-full",
+                            isCollapsed && "md:hidden"
+                          )} />
                         )}
                       </Link>
                     </SidebarMenuButton>
@@ -159,12 +162,15 @@ const MainSidebar: React.FC<MainSidebarProps> = ({ userType, setUserType }) => {
                   >
                     <Link to={userTypeNavItem.path} className={cn(
                       "group flex items-center",
-                      location.pathname === userTypeNavItem.path && "text-nova-blue"
+                      location.pathname === userTypeNavItem.path ? "text-nova-blue" : "text-nova-dark-gray hover:text-nova-dark-gray/80"
                     )}>
                       <userTypeNavItem.icon className="mr-3 h-5 w-5" />
                       <span className={cn(isCollapsed && "md:hidden")}>{userTypeNavItem.name}</span>
                       {location.pathname === userTypeNavItem.path && !isCollapsed && (
-                        <div className="absolute right-4 w-1 h-6 bg-gradient-to-b from-nova-blue to-nova-deep-purple rounded-full" />
+                        <div className={cn(
+                          "absolute right-4 w-1 h-6 bg-gradient-to-b from-nova-blue to-nova-deep-purple rounded-full",
+                          isCollapsed && "md:hidden"
+                        )} />
                       )}
                     </Link>
                   </SidebarMenuButton>
@@ -212,7 +218,7 @@ const MainSidebar: React.FC<MainSidebarProps> = ({ userType, setUserType }) => {
               <div className="flex items-center space-x-3">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <div className="flex items-center space-x-2 cursor-pointer p-2 hover:bg-white/50 rounded-lg transition-all">
+                    <div className="flex items-center space-x-2 cursor-pointer p-2 hover:bg-white/10 rounded-lg transition-all">
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={profile?.avatar_url || ""} />
                         <AvatarFallback className="bg-gradient-to-r from-nova-blue to-nova-deep-purple text-white">
