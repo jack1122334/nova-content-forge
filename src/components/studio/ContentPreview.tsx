@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 interface ContentPreviewProps {
   selectedTrends: string[];
@@ -72,15 +73,31 @@ const ContentPreview: React.FC<ContentPreviewProps> = ({
           <div className="flex-1 overflow-hidden mb-4">
             <div className="bg-gray-50 rounded-lg p-4 h-full overflow-auto">
               <div className="max-w-[375px] mx-auto bg-white rounded-xl overflow-hidden shadow">
-                <img 
-                  src={generatedContent?.img_url || "https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=600&h=800"} 
-                  alt="Preview" 
-                  className="w-full h-auto"
-                  onError={(e) => {
-                    console.error("Image failed to load:", generatedContent?.img_url);
-                    e.currentTarget.src = "https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=600&h=800";
-                  }}
-                />
+                {generatedContent?.img_url ? (
+                  <div className="w-full">
+                    <AspectRatio ratio={3/4} className="bg-gray-100">
+                      <img 
+                        src={generatedContent.img_url} 
+                        alt="Preview" 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          console.error("Image failed to load:", generatedContent.img_url);
+                          e.currentTarget.src = "https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=600&h=800";
+                        }}
+                      />
+                    </AspectRatio>
+                  </div>
+                ) : (
+                  <div className="w-full">
+                    <AspectRatio ratio={3/4} className="bg-gray-100">
+                      <img 
+                        src="https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=600&h=800"
+                        alt="Preview" 
+                        className="w-full h-full object-cover"
+                      />
+                    </AspectRatio>
+                  </div>
+                )}
                 <div className="p-4">
                   <div dangerouslySetInnerHTML={{ 
                     __html: markdownToHtml(generatedContent?.text || "") 
@@ -113,15 +130,19 @@ const ContentPreview: React.FC<ContentPreviewProps> = ({
           <div className="flex-1 overflow-hidden mb-4">
             <div className="grid grid-cols-2 gap-4 h-full overflow-auto p-4 border rounded-lg">
               {generatedContent?.img_url ? (
-                <img 
-                  src={generatedContent.img_url} 
-                  alt="Generated image" 
-                  className="w-full h-auto rounded-lg border"
-                  onError={(e) => {
-                    console.error("Image failed to load:", generatedContent.img_url);
-                    e.currentTarget.src = "https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=600&h=800";
-                  }}
-                />
+                <div className="w-full h-auto rounded-lg border overflow-hidden">
+                  <AspectRatio ratio={3/4} className="bg-gray-100">
+                    <img 
+                      src={generatedContent.img_url} 
+                      alt="Generated image" 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        console.error("Image failed to load:", generatedContent.img_url);
+                        e.currentTarget.src = "https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=600&h=800";
+                      }}
+                    />
+                  </AspectRatio>
+                </div>
               ) : (
                 <div className="border rounded-lg flex items-center justify-center bg-gray-50 text-gray-400 p-4">
                   暂无生成的图片
