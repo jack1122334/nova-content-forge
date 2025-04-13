@@ -134,11 +134,8 @@ const MainSidebar: React.FC<MainSidebarProps> = ({ userType, setUserType }) => {
                       )}>
                         <item.icon className="mr-3 h-5 w-5" />
                         <span className={cn(isCollapsed && "md:hidden")}>{item.name}</span>
-                        {location.pathname === item.path && (
-                          <div className={cn(
-                            "absolute right-4 w-1 h-6 bg-gradient-to-b from-nova-blue to-nova-deep-purple rounded-full",
-                            isCollapsed && "md:right-1"
-                          )} />
+                        {location.pathname === item.path && !isCollapsed && (
+                          <div className="absolute right-4 w-1 h-6 bg-gradient-to-b from-nova-blue to-nova-deep-purple rounded-full" />
                         )}
                       </Link>
                     </SidebarMenuButton>
@@ -166,44 +163,43 @@ const MainSidebar: React.FC<MainSidebarProps> = ({ userType, setUserType }) => {
                     )}>
                       <userTypeNavItem.icon className="mr-3 h-5 w-5" />
                       <span className={cn(isCollapsed && "md:hidden")}>{userTypeNavItem.name}</span>
-                      {location.pathname === userTypeNavItem.path && (
-                        <div className={cn(
-                          "absolute right-4 w-1 h-6 bg-gradient-to-b from-nova-blue to-nova-deep-purple rounded-full",
-                          isCollapsed && "md:right-1"
-                        )} />
+                      {location.pathname === userTypeNavItem.path && !isCollapsed && (
+                        <div className="absolute right-4 w-1 h-6 bg-gradient-to-b from-nova-blue to-nova-deep-purple rounded-full" />
                       )}
                     </Link>
                   </SidebarMenuButton>
-                  <SidebarMenuSub>
-                    <SidebarMenuSubItem>
-                      <SidebarMenuSubButton 
-                        isActive={userType === "personal"}
-                        onClick={() => setUserType("personal")}
-                      >
-                        <User className="h-3.5 w-3.5 mr-1.5" />
-                        <span>我是个人</span>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                    <SidebarMenuSubItem>
-                      <SidebarMenuSubButton 
-                        isActive={userType === "brand"}
-                        onClick={() => setUserType("brand")}
-                      >
-                        <Briefcase className="h-3.5 w-3.5 mr-1.5" />
-                        <span>我是品牌方</span>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                    <SidebarMenuSubItem>
-                      <SidebarMenuSubButton 
-                        isActive={userType === "agency"}
-                        className="text-gray-400"
-                        onClick={() => setUserType("agency")}
-                      >
-                        <Users className="h-3.5 w-3.5 mr-1.5" />
-                        <span>我是代理商</span>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                  </SidebarMenuSub>
+                  {!isCollapsed && (
+                    <SidebarMenuSub>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton 
+                          isActive={userType === "personal"}
+                          onClick={() => setUserType("personal")}
+                        >
+                          <User className="h-3.5 w-3.5 mr-1.5" />
+                          <span>我是个人</span>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton 
+                          isActive={userType === "brand"}
+                          onClick={() => setUserType("brand")}
+                        >
+                          <Briefcase className="h-3.5 w-3.5 mr-1.5" />
+                          <span>我是品牌方</span>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton 
+                          isActive={userType === "agency"}
+                          className="text-gray-400"
+                          onClick={() => setUserType("agency")}
+                        >
+                          <Users className="h-3.5 w-3.5 mr-1.5" />
+                          <span>我是代理商</span>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    </SidebarMenuSub>
+                  )}
                 </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
