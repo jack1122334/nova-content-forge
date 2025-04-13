@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   Home, 
@@ -11,7 +11,9 @@ import {
   Briefcase,
   LogOut,
   ChevronRight,
-  Users
+  Users,
+  Menu,
+  ChevronLeft
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
@@ -28,6 +30,9 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarGroupContent,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
   SidebarSeparator
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -42,13 +47,27 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface MainSidebarProps {
-  userType: "personal" | "brand";
-  setUserType: (type: "personal" | "brand") => void;
+  userType: "personal" | "brand" | "agency";
+  setUserType: (type: "personal" | "brand" | "agency") => void;
 }
 
 const MainSidebar: React.FC<MainSidebarProps> = ({ userType, setUserType }) => {
   const location = useLocation();
   const { user, profile, signOut } = useAuth();
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  
+  // Auto-collapse sidebar on mobile
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setIsCollapsed(true);
+      }
+    };
+    
+    handleResize(); // Initial check
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   const generalNavItems = [
     { name: "首页", path: "/", icon: Home },
@@ -59,31 +78,48 @@ const MainSidebar: React.FC<MainSidebarProps> = ({ userType, setUserType }) => {
   ];
   
   const userTypeNavItem = { 
-    name: userType === "personal" ? "个人中心" : "品牌中心", 
-    path: userType === "personal" ? "/profile" : "/brand", 
-    icon: userType === "personal" ? User : Briefcase 
+    name: userType === "personal" ? "个人中心" : userType === "brand" ? "品牌中心" : "代理商中心", 
+    path: userType === "personal" ? "/profile" : userType === "brand" ? "/brand" : "/agency", 
+    icon: userType === "personal" ? User : userType === "brand" ? Briefcase : Users 
   };
 
   const handleLogout = async () => {
     await signOut();
   };
 
+  const toggleSidebar = () => {
+    setIsCollapsed(!isCollapsed);
+  };
+
   return (
     <>
-      <Sidebar variant="floating" className="backdrop-blur-sm bg-white/70 border-r border-gray-200 text-nova-dark-gray">
+      <Sidebar 
+        variant="floating" 
+        className={cn(
+          "backdrop-blur-sm bg-white/70 border-r border-gray-200/50 text-nova-dark-gray transition-all duration-300",
+          isCollapsed && "md:w-16"
+        )}
+      >
         <SidebarRail />
         <SidebarHeader className="flex flex-col gap-2 p-4">
           <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center">
+            <Link to="/" className={cn("flex items-center", isCollapsed && "md:hidden")}>
               <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-nova-blue to-nova-deep-purple">Nova</h1>
             </Link>
-            <SidebarTrigger />
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={toggleSidebar} 
+              className="hover:bg-gray-200/50"
+            >
+              {isCollapsed ? <Menu className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+            </Button>
           </div>
         </SidebarHeader>
         
         <SidebarContent>
           <SidebarGroup>
-            <SidebarGroupLabel>导航</SidebarGroupLabel>
+            <SidebarGroupLabel className={cn(isCollapsed && "md:hidden")}>导航</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {generalNavItems.map((item) => (
@@ -91,14 +127,14 @@ const MainSidebar: React.FC<MainSidebarProps> = ({ userType, setUserType }) => {
                     <SidebarMenuButton
                       asChild
                       isActive={location.pathname === item.path}
-                      tooltip={item.name}
+                      tooltip={isCollapsed ? item.name : undefined}
                     >
                       <Link to={item.path} className={cn(
                         "group flex items-center",
                         location.pathname === item.path && "text-nova-blue"
                       )}>
                         <item.icon className="mr-3 h-5 w-5" />
-                        <span>{item.name}</span>
+                        <span className={cn(isCollapsed && "md:hidden")}>{item.name}</span>
                         {location.pathname === item.path && (
                           <div className="absolute right-4 w-1 h-6 bg-gradient-to-b from-nova-blue to-nova-deep-purple rounded-full" />
                         )}
@@ -113,26 +149,57 @@ const MainSidebar: React.FC<MainSidebarProps> = ({ userType, setUserType }) => {
           <SidebarSeparator />
           
           <SidebarGroup>
-            <SidebarGroupLabel>用户</SidebarGroupLabel>
+            <SidebarGroupLabel className={cn(isCollapsed && "md:hidden")}>用户</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     asChild
                     isActive={location.pathname === userTypeNavItem.path}
-                    tooltip={userTypeNavItem.name}
+                    tooltip={isCollapsed ? userTypeNavItem.name : undefined}
                   >
                     <Link to={userTypeNavItem.path} className={cn(
                       "group flex items-center",
                       location.pathname === userTypeNavItem.path && "text-nova-blue"
                     )}>
                       <userTypeNavItem.icon className="mr-3 h-5 w-5" />
-                      <span>{userTypeNavItem.name}</span>
+                      <span className={cn(isCollapsed && "md:hidden")}>{userTypeNavItem.name}</span>
                       {location.pathname === userTypeNavItem.path && (
                         <div className="absolute right-4 w-1 h-6 bg-gradient-to-b from-nova-blue to-nova-deep-purple rounded-full" />
                       )}
                     </Link>
                   </SidebarMenuButton>
+                  <SidebarMenuSub>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton 
+                        isActive={userType === "personal"}
+                        onClick={() => setUserType("personal")}
+                      >
+                        <User className="h-3.5 w-3.5 mr-1.5" />
+                        <span>我是个人</span>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton 
+                        isActive={userType === "brand"}
+                        onClick={() => setUserType("brand")}
+                      >
+                        <Briefcase className="h-3.5 w-3.5 mr-1.5" />
+                        <span>我是品牌方</span>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton 
+                        isActive={userType === "agency"}
+                        disabled
+                        className="text-gray-400"
+                        onClick={() => setUserType("agency")}
+                      >
+                        <Users className="h-3.5 w-3.5 mr-1.5" />
+                        <span>我是代理商</span>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  </SidebarMenuSub>
                 </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
@@ -152,10 +219,10 @@ const MainSidebar: React.FC<MainSidebarProps> = ({ userType, setUserType }) => {
                           {profile?.username?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="text-sm font-medium text-nova-dark-gray">
+                      <span className={cn("text-sm font-medium text-nova-dark-gray", isCollapsed && "md:hidden")}>
                         {profile?.username || user.email?.split('@')[0]}
                       </span>
-                      <ChevronRight className="h-4 w-4 text-gray-400" />
+                      <ChevronRight className={cn("h-4 w-4 text-gray-400", isCollapsed && "md:hidden")} />
                     </div>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
@@ -173,40 +240,9 @@ const MainSidebar: React.FC<MainSidebarProps> = ({ userType, setUserType }) => {
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
-              
-              <div className="p-2 bg-white/30 backdrop-blur-sm rounded-lg border border-gray-200/50">
-                <div className="text-xs font-medium text-gray-500 mb-2">用户类型</div>
-                <RadioGroup 
-                  value={userType} 
-                  onValueChange={(value) => setUserType(value as "personal" | "brand")}
-                  className="flex flex-col gap-2"
-                >
-                  <div className="flex items-center space-x-2 p-1.5 rounded-md hover:bg-white/50 transition-all">
-                    <RadioGroupItem value="personal" id="personal" className="text-nova-blue" />
-                    <label htmlFor="personal" className="text-sm font-medium cursor-pointer flex items-center">
-                      <User className="h-3.5 w-3.5 mr-1.5" />
-                      我是个人
-                    </label>
-                  </div>
-                  <div className="flex items-center space-x-2 p-1.5 rounded-md hover:bg-white/50 transition-all">
-                    <RadioGroupItem value="brand" id="brand" className="text-nova-blue" />
-                    <label htmlFor="brand" className="text-sm font-medium cursor-pointer flex items-center">
-                      <Briefcase className="h-3.5 w-3.5 mr-1.5" />
-                      我是品牌方
-                    </label>
-                  </div>
-                  <div className="flex items-center space-x-2 p-1.5 rounded-md hover:bg-white/50 transition-all">
-                    <RadioGroupItem value="agency" id="agency" disabled className="text-nova-blue" />
-                    <label htmlFor="agency" className="text-sm font-medium cursor-pointer text-gray-400 flex items-center">
-                      <Users className="h-3.5 w-3.5 mr-1.5" />
-                      我是代理商
-                    </label>
-                  </div>
-                </RadioGroup>
-              </div>
             </div>
           ) : (
-            <div className="flex flex-col gap-2">
+            <div className={cn("flex flex-col gap-2", isCollapsed && "md:hidden")}>
               <Link
                 to="/auth?tab=register"
                 className="w-full px-4 py-2 text-sm text-center font-medium rounded-lg border border-nova-blue/20 bg-gradient-to-r from-nova-blue/10 to-nova-deep-purple/10 text-nova-blue backdrop-blur-sm transition-all hover:from-nova-blue/20 hover:to-nova-deep-purple/20"
