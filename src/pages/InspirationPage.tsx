@@ -61,47 +61,16 @@ const InspirationPage: React.FC = () => {
         setTemplates(formattedTemplates);
         setFilteredTemplates(formattedTemplates);
       } else {
-        const mockTemplates = [
-          {
-            id: "1",
-            title: "小红书爆款好物种草模板",
-            image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9",
-            html_content: "<div style='color: red; background-color: white;'>小红书风格默认HTML</div>",
-            views: 542,
-            likes: 128,
-            isFree: true,
-            platform: "小红书",
-            created_at: new Date().toISOString()
-          },
-          {
-            id: "2",
-            title: "抖音短视频脚本模板",
-            image: "https://images.unsplash.com/photo-1721322800607-8c38375eef04",
-            views: 321,
-            likes: 89,
-            isFree: false,
-            platform: "抖音",
-            created_at: new Date(Date.now() - 86400000).toISOString()
-          },
-          {
-            id: "3",
-            title: "Instagram 照片排版模板",
-            image: "https://images.unsplash.com/photo-1472396961693-142e6e269027",
-            views: 210,
-            likes: 45,
-            isFree: true,
-            platform: "Instagram",
-            created_at: new Date(Date.now() - 172800000).toISOString()
-          }
-        ];
-        
-        setTemplates(mockTemplates);
-        setFilteredTemplates(mockTemplates);
+        setTemplates([]);
+        setFilteredTemplates([]);
       }
       
     } catch (error) {
       console.error("Error fetching templates:", error);
       toast.error("加载模板失败，请刷新页面重试");
+      
+      setTemplates([]);
+      setFilteredTemplates([]);
     } finally {
       setIsLoading(false);
     }

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { ChevronRight, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,26 +42,14 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ onSelectTemplate, s
           html_content: template.html_content
         }));
       
-      setFavoriteTemplates(favorites.length > 0 ? favorites : [
-        {
-          id: "1",
-          title: "小红书风格模板",
-          image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9",
-          html_content: "<div style='color: red; background-color: white;'>小红书风格模板默认HTML</div>"
-        },
-        {
-          id: "2",
-          title: "抖音短视频模板",
-          image: "https://images.unsplash.com/photo-1721322800607-8c38375eef04",
-          html_content: "<div style='color: black; background-color: gray;'>抖音短视频模板默认HTML</div>"
-        }
-      ]);
+      setFavoriteTemplates(favorites);
       
       console.log("Loaded favorite templates with HTML content:", favorites);
       
     } catch (error) {
       console.error("Error fetching favorite templates:", error);
       toast.error("无法加载收藏的模板");
+      setFavoriteTemplates([]);
     } finally {
       setIsLoading(false);
     }
