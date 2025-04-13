@@ -4,8 +4,8 @@ import { Users, Briefcase, FileText } from "lucide-react";
 
 const Stats: React.FC = () => {
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-6 flex justify-around">
-      <div className="flex items-center">
+    <div className="grid grid-cols-3 gap-4 w-full">
+      <div className="bg-white rounded-2xl shadow-sm p-6 flex items-center justify-center">
         <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mr-4">
           <Users className="w-6 h-6 text-nova-blue" />
         </div>
@@ -15,7 +15,7 @@ const Stats: React.FC = () => {
         </div>
       </div>
       
-      <div className="flex items-center">
+      <div className="bg-white rounded-2xl shadow-sm p-6 flex items-center justify-center">
         <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mr-4">
           <Briefcase className="w-6 h-6 text-nova-blue" />
         </div>
@@ -25,7 +25,7 @@ const Stats: React.FC = () => {
         </div>
       </div>
       
-      <div className="flex items-center">
+      <div className="bg-white rounded-2xl shadow-sm p-6 flex items-center justify-center">
         <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mr-4">
           <FileText className="w-6 h-6 text-nova-blue" />
         </div>

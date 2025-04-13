@@ -148,14 +148,28 @@ const HomePage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="grid grid-cols-2 gap-6">
-        <SearchBox />
-        <Stats />
+    <div className="space-y-16">
+      {/* Hero Section with Google-like Search */}
+      <div className="flex flex-col items-center justify-center py-16 space-y-8">
+        <h1 className="text-4xl md:text-5xl font-bold text-center text-nova-dark-gray bg-clip-text">
+          <span className="text-nova-blue">Nova</span>: World's first AI influencer marketing platform
+        </h1>
+        
+        <div className="w-full max-w-2xl mx-auto">
+          <SearchBox />
+        </div>
+        
+        <div className="w-full max-w-4xl">
+          <Stats />
+        </div>
       </div>
       
-      <TaskCarousel tasks={mockTasks} />
+      {/* Task Carousel Section */}
+      <div>
+        <TaskCarousel tasks={mockTasks} />
+      </div>
       
+      {/* Templates Section */}
       <div>
         <TemplateFilter onFilterChange={handleFilterChange} />
         <TemplateGrid templates={filteredTemplates.length > 0 ? filteredTemplates : mockTemplates} />
