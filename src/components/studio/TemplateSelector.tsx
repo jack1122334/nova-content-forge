@@ -8,10 +8,11 @@ interface Template {
   id: string;
   title: string;
   image: string;
+  html_content?: string;
 }
 
 interface TemplateSelectorProps {
-  onSelectTemplate?: (templateId: string) => void;
+  onSelectTemplate?: (templateId: string, htmlContent?: string) => void;
   selectedTemplate?: string | null;
 }
 
@@ -38,21 +39,26 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ onSelectTemplate, s
         .map((template: any) => ({
           id: template.id,
           title: template.title,
-          image: template.image
+          image: template.image,
+          html_content: template.html_content
         }));
       
       setFavoriteTemplates(favorites.length > 0 ? favorites : [
         {
           id: "1",
           title: "小红书风格模板",
-          image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9"
+          image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9",
+          html_content: "<div style='color: red; background-color: white;'>小红书风格模板默认HTML</div>"
         },
         {
           id: "2",
           title: "抖音短视频模板",
-          image: "https://images.unsplash.com/photo-1721322800607-8c38375eef04"
+          image: "https://images.unsplash.com/photo-1721322800607-8c38375eef04",
+          html_content: "<div style='color: black; background-color: gray;'>抖音短视频模板默认HTML</div>"
         }
       ]);
+      
+      console.log("Loaded favorite templates with HTML content:", favorites);
       
     } catch (error) {
       console.error("Error fetching favorite templates:", error);
@@ -62,9 +68,10 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ onSelectTemplate, s
     }
   };
 
-  const handleTemplateSelect = (templateId: string) => {
+  const handleTemplateSelect = (templateId: string, htmlContent?: string) => {
     if (onSelectTemplate) {
-      onSelectTemplate(templateId);
+      console.log("Selected template:", templateId, "HTML content:", htmlContent);
+      onSelectTemplate(templateId, htmlContent);
     }
   };
   
@@ -95,7 +102,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ onSelectTemplate, s
             <div 
               key={template.id} 
               className={`border ${selectedTemplate === template.id ? 'border-nova-blue' : 'border-gray-100'} rounded-lg overflow-hidden cursor-pointer hover:border-nova-blue transition-all ${selectedTemplate === template.id ? 'ring-2 ring-nova-blue/20' : ''}`}
-              onClick={() => handleTemplateSelect(template.id)}
+              onClick={() => handleTemplateSelect(template.id, template.html_content)}
             >
               <div className="aspect-[4/3] relative">
                 <img 

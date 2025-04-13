@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import TemplateFilter from "@/components/home/TemplateFilter";
 import TemplateCard from "@/components/home/TemplateCard";
@@ -10,16 +9,15 @@ const InspirationPage: React.FC = () => {
   const [templates, setTemplates] = useState<any[]>([]);
   const [filteredTemplates, setFilteredTemplates] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [sortBy, setSortBy] = useState("newest"); // Changed default to newest
+  const [sortBy, setSortBy] = useState("newest");
   const [userFavorites, setUserFavorites] = useState<string[]>([]);
-  
+
   useEffect(() => {
     fetchTemplates();
     fetchUserFavorites();
   }, []);
-  
+
   useEffect(() => {
-    // Apply sort to templates
     let sorted = [...templates];
     
     if (sortBy === "newest") {
@@ -29,26 +27,23 @@ const InspirationPage: React.FC = () => {
     } else if (sortBy === "popular") {
       sorted = sorted.sort((a, b) => (b.views || 0) - (a.views || 0));
     } else {
-      // For recommended, we could use a different algorithm later
       sorted = sorted.sort((a, b) => (b.likes || 0) - (a.likes || 0));
     }
     
     setFilteredTemplates(sorted);
   }, [templates, sortBy]);
-  
+
   const fetchTemplates = async () => {
     setIsLoading(true);
     try {
-      // Get templates from localStorage
       const savedTemplates = JSON.parse(localStorage.getItem('templates') || '[]');
       
-      // If we have saved templates, use those
       if (savedTemplates.length > 0) {
-        // Make sure the templates have all required properties
         const formattedTemplates = savedTemplates.map((template: any) => ({
           id: template.id,
           title: template.title,
           image: template.image,
+          html_content: template.html_content || "",
           views: template.views || 0,
           likes: template.likes || 0,
           isFree: template.isFree !== undefined ? template.isFree : true,
@@ -56,15 +51,22 @@ const InspirationPage: React.FC = () => {
           created_at: template.created_at || new Date().toISOString()
         }));
         
+        console.log("Loaded templates with HTML content:", 
+                    formattedTemplates.map(t => ({
+                      id: t.id, 
+                      title: t.title, 
+                      hasHtml: !!t.html_content
+                    })));
+        
         setTemplates(formattedTemplates);
         setFilteredTemplates(formattedTemplates);
       } else {
-        // Use mock templates as fallback
         const mockTemplates = [
           {
             id: "1",
             title: "小红书爆款好物种草模板",
             image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9",
+            html_content: "<div style='color: red; background-color: white;'>小红书风格默认HTML</div>",
             views: 542,
             likes: 128,
             isFree: true,
@@ -79,7 +81,7 @@ const InspirationPage: React.FC = () => {
             likes: 89,
             isFree: false,
             platform: "抖音",
-            created_at: new Date(Date.now() - 86400000).toISOString() // yesterday
+            created_at: new Date(Date.now() - 86400000).toISOString()
           },
           {
             id: "3",
@@ -89,7 +91,7 @@ const InspirationPage: React.FC = () => {
             likes: 45,
             isFree: true,
             platform: "Instagram",
-            created_at: new Date(Date.now() - 172800000).toISOString() // 2 days ago
+            created_at: new Date(Date.now() - 172800000).toISOString()
           }
         ];
         
@@ -104,17 +106,16 @@ const InspirationPage: React.FC = () => {
       setIsLoading(false);
     }
   };
-  
+
   const fetchUserFavorites = async () => {
     try {
-      // Get favorite template IDs from localStorage
       const favoriteIds = JSON.parse(localStorage.getItem('favoriteTemplates') || '[]');
       setUserFavorites(favoriteIds);
     } catch (error) {
       console.error("Error fetching user favorites:", error);
     }
   };
-  
+
   const handleFilterChange = (filters: {
     platforms: string[];
     industries: string[];
@@ -123,14 +124,12 @@ const InspirationPage: React.FC = () => {
   }) => {
     let filtered = [...templates];
     
-    // Apply platform filter
     if (filters.platforms.length > 0) {
       filtered = filtered.filter(template => 
         filters.platforms.some(p => template.platform.includes(p))
       );
     }
     
-    // Apply fee filter
     if (filters.fees.length > 0) {
       filtered = filtered.filter(template => 
         (filters.fees.includes('free') && template.isFree) || 
@@ -138,32 +137,26 @@ const InspirationPage: React.FC = () => {
       );
     }
     
-    // Note: industries and types would need the corresponding data in the templates
-    
     setFilteredTemplates(filtered);
   };
-  
+
   const handleToggleFavorite = async (id: string) => {
     try {
       const isFavorited = userFavorites.includes(id);
       let updatedFavorites: string[];
       
       if (isFavorited) {
-        // Remove from favorites
         updatedFavorites = userFavorites.filter(templateId => templateId !== id);
         setUserFavorites(updatedFavorites);
         toast.success("已取消收藏");
       } else {
-        // Add to favorites
         updatedFavorites = [...userFavorites, id];
         setUserFavorites(updatedFavorites);
         toast.success("已添加到收藏");
       }
       
-      // Save updated favorites to localStorage
       localStorage.setItem('favoriteTemplates', JSON.stringify(updatedFavorites));
       
-      // Update template like count in the UI
       setTemplates(prev => 
         prev.map(template => 
           template.id === id 
@@ -171,15 +164,13 @@ const InspirationPage: React.FC = () => {
             : template
         )
       );
-      
     } catch (error) {
       console.error("Error toggling favorite:", error);
       toast.error("收藏操作失败，请重试");
     }
   };
-  
+
   const loadMore = async () => {
-    // Implement pagination logic here
     toast.info("加载更多模板...");
   };
 

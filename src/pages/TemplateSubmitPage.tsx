@@ -98,13 +98,21 @@ const TemplateSubmitPage: React.FC = () => {
       return;
     }
     
-    setHtmlTemplateFile({
-      file,
-      name: file.name,
-      type: file.type
-    });
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      setHtmlTemplateFile({
+        file,
+        name: file.name,
+        type: file.type,
+        content: content
+      });
+      
+      console.log("HTML template file content loaded:", content.substring(0, 100) + "...");
+      toast.success("HTML模板文件上传成功");
+    };
     
-    toast.success("HTML模板文件上传成功");
+    reader.readAsText(file);
   };
 
   const removeFile = (index: number) => {
@@ -161,6 +169,7 @@ const TemplateSubmitPage: React.FC = () => {
         isFree: data.pricing === "free",
         price: data.pricing === "paid" ? parseFloat(data.price || "0") : 0,
         has_html_template: !!htmlTemplateFile,
+        html_content: htmlTemplateFile?.content || "",
         auto_render_cover: data.autoRenderCover,
         user_id: userId,
         status: "approved",
@@ -169,6 +178,9 @@ const TemplateSubmitPage: React.FC = () => {
         created_at: new Date().toISOString(),
         platform: data.platforms[0] || "通用"
       };
+      
+      console.log("Saving template with HTML content:", templateData.title, 
+                  templateData.html_content ? templateData.html_content.substring(0, 100) + "..." : "No HTML");
       
       const existingTemplates = JSON.parse(localStorage.getItem('templates') || '[]');
       localStorage.setItem('templates', JSON.stringify([...existingTemplates, templateData]));

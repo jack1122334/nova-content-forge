@@ -21,6 +21,7 @@ const StudioPage: React.FC = () => {
   const [contentReady, setContentReady] = React.useState(false);
   const [selectedTrends, setSelectedTrends] = useState<string[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const [selectedTemplateHtml, setSelectedTemplateHtml] = useState<string | undefined>(undefined);
   const [customRequirements, setCustomRequirements] = useState("");
   const [generatedContent, setGeneratedContent] = useState<{
     img_url: string;
@@ -66,7 +67,8 @@ const StudioPage: React.FC = () => {
           hotspot: hotspots,
           account_info: accountInfo,
           text_style: customRequirements || "",
-          template: styleOption === "use-template" && selectedTemplate ? selectedTemplate : ""
+          template: styleOption === "use-template" && selectedTemplate ? selectedTemplate : "",
+          template_html: styleOption === "use-template" && selectedTemplateHtml ? selectedTemplateHtml : ""
         }
       };
 
@@ -151,10 +153,11 @@ const StudioPage: React.FC = () => {
     console.log("Selected trends updated:", trends);
   };
   
-  const handleTemplateSelect = (templateId: string) => {
+  const handleTemplateSelect = (templateId: string, htmlContent?: string) => {
     if (styleOption === "use-template") {
       setSelectedTemplate(templateId);
-      console.log("Selected template updated:", templateId);
+      setSelectedTemplateHtml(htmlContent);
+      console.log("Selected template updated:", templateId, "with HTML:", htmlContent);
     }
   };
   
