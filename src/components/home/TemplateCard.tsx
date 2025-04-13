@@ -1,6 +1,7 @@
 
 import React from "react";
 import { Heart, Eye } from "lucide-react";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 export interface TemplateCardProps {
   id: string;
@@ -26,12 +27,14 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
 }) => {
   return (
     <div className="nova-card">
-      <div className="aspect-[4/3] relative overflow-hidden">
-        <img 
-          src={image} 
-          alt={title} 
-          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-        />
+      <div className="relative overflow-hidden">
+        <AspectRatio ratio={3/4}>
+          <img 
+            src={image} 
+            alt={title} 
+            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+          />
+        </AspectRatio>
         <div className="absolute top-2 right-2">
           <span className="text-xs px-2 py-1 bg-white bg-opacity-90 rounded-full text-nova-dark-gray">
             {platform}

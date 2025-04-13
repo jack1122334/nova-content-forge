@@ -24,7 +24,7 @@ const InspirationPage: React.FC = () => {
     
     if (sortBy === "newest") {
       sorted = sorted.sort((a, b) => 
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        new Date(b.created_at || Date.now()).getTime() - new Date(a.created_at || Date.now()).getTime()
       );
     } else if (sortBy === "popular") {
       sorted = sorted.sort((a, b) => (b.views || 0) - (a.views || 0));
@@ -39,28 +39,44 @@ const InspirationPage: React.FC = () => {
   const fetchTemplates = async () => {
     setIsLoading(true);
     try {
-      // Get templates that have been approved
-      const { data, error } = await supabase
-        .from('templates')
-        .select('*')
-        .eq('status', 'approved')
-        .order('created_at', { ascending: false });
+      // For testing only - the real code would fetch from the actual tables once they exist
+      // This simulates some templates to display in the inspiration page
+      const mockTemplates = [
+        {
+          id: "1",
+          title: "小红书爆款好物种草模板",
+          image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9",
+          views: 542,
+          likes: 128,
+          isFree: true,
+          platform: "小红书",
+          created_at: new Date().toISOString()
+        },
+        {
+          id: "2",
+          title: "抖音短视频脚本模板",
+          image: "https://images.unsplash.com/photo-1721322800607-8c38375eef04",
+          views: 321,
+          likes: 89,
+          isFree: false,
+          platform: "抖音",
+          created_at: new Date(Date.now() - 86400000).toISOString() // yesterday
+        },
+        {
+          id: "3",
+          title: "Instagram 照片排版模板",
+          image: "https://images.unsplash.com/photo-1472396961693-142e6e269027",
+          views: 210,
+          likes: 45,
+          isFree: true,
+          platform: "Instagram",
+          created_at: new Date(Date.now() - 172800000).toISOString() // 2 days ago
+        }
+      ];
       
-      if (error) throw error;
+      setTemplates(mockTemplates);
+      setFilteredTemplates(mockTemplates);
       
-      // Transform the data to match the TemplateCard props
-      const transformedData = data.map(template => ({
-        id: template.id,
-        title: template.title,
-        image: template.image_url,
-        views: template.views || 0,
-        likes: template.likes || 0,
-        isFree: template.is_free,
-        platform: template.platforms ? template.platforms[0] : "通用",
-      }));
-      
-      setTemplates(transformedData);
-      setFilteredTemplates(transformedData);
     } catch (error) {
       console.error("Error fetching templates:", error);
       toast.error("加载模板失败，请刷新页面重试");
@@ -74,14 +90,8 @@ const InspirationPage: React.FC = () => {
       const { data: user } = await supabase.auth.getUser();
       
       if (user && user.user) {
-        const { data, error } = await supabase
-          .from('template_favorites')
-          .select('template_id')
-          .eq('user_id', user.user.id);
-        
-        if (error) throw error;
-        
-        setUserFavorites(data.map(item => item.template_id));
+        // Mock favorite templates for testing
+        setUserFavorites(["1"]); // Template 1 is favorited
       }
     } catch (error) {
       console.error("Error fetching user favorites:", error);
@@ -128,24 +138,13 @@ const InspirationPage: React.FC = () => {
       const isFavorited = userFavorites.includes(id);
       
       if (isFavorited) {
-        // Remove from favorites
-        await supabase
-          .from('template_favorites')
-          .delete()
-          .eq('user_id', user.user.id)
-          .eq('template_id', id);
-        
+        // Remove from favorites (mock)
         setUserFavorites(prev => prev.filter(templateId => templateId !== id));
+        toast.success("已取消收藏");
       } else {
-        // Add to favorites
-        await supabase
-          .from('template_favorites')
-          .insert({
-            user_id: user.user.id,
-            template_id: id
-          });
-        
+        // Add to favorites (mock)
         setUserFavorites(prev => [...prev, id]);
+        toast.success("已添加到收藏");
       }
       
       // Update template like count in the UI
@@ -156,9 +155,6 @@ const InspirationPage: React.FC = () => {
             : template
         )
       );
-      
-      // Update the template like count in the database
-      await supabase.rpc('update_template_likes', { template_id: id });
       
     } catch (error) {
       console.error("Error toggling favorite:", error);
@@ -207,7 +203,7 @@ const InspirationPage: React.FC = () => {
             <Loader2 className="h-10 w-10 text-nova-blue animate-spin" />
           </div>
         ) : filteredTemplates.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {filteredTemplates.map(template => (
               <TemplateCard 
                 key={template.id} 

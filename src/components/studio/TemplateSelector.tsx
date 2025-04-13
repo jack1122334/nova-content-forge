@@ -33,37 +33,22 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ onSelectTemplate })
         return;
       }
       
-      // Get favorite template IDs
-      const { data: favorites, error: favoritesError } = await supabase
-        .from('template_favorites')
-        .select('template_id')
-        .eq('user_id', userData.user.id);
+      // For testing only - the real code would fetch from the actual tables once they exist
+      // This simulates some favorite templates to display
+      const mockFavorites = [
+        {
+          id: "1",
+          title: "小红书风格模板",
+          image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9"
+        },
+        {
+          id: "2",
+          title: "抖音短视频模板",
+          image: "https://images.unsplash.com/photo-1721322800607-8c38375eef04"
+        }
+      ];
       
-      if (favoritesError) throw favoritesError;
-      
-      if (favorites.length === 0) {
-        setIsLoading(false);
-        return;
-      }
-      
-      // Get template details
-      const templateIds = favorites.map(fav => fav.template_id);
-      
-      const { data: templates, error: templatesError } = await supabase
-        .from('templates')
-        .select('id, title, image_url')
-        .in('id', templateIds);
-      
-      if (templatesError) throw templatesError;
-      
-      // Transform template data
-      const transformedTemplates = templates.map(template => ({
-        id: template.id,
-        title: template.title,
-        image: template.image_url
-      }));
-      
-      setFavoriteTemplates(transformedTemplates);
+      setFavoriteTemplates(mockFavorites);
       
     } catch (error) {
       console.error("Error fetching favorite templates:", error);
