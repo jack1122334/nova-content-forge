@@ -1,14 +1,14 @@
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import SearchBox from "@/components/home/SearchBox";
 import Stats from "@/components/home/Stats";
 import TaskCarousel from "@/components/home/TaskCarousel";
 import TemplateFilter from "@/components/home/TemplateFilter";
-import TemplateGrid from "@/components/home/TemplateGrid";
 import TemplateCard from "@/components/home/TemplateCard";
 import { TaskCardProps } from "@/components/marketplace/TaskCard";
-import { TemplateCardProps } from "@/components/home/TemplateCard";
 import { Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const mockTasks: TaskCardProps[] = [
   {
@@ -74,86 +74,152 @@ const mockTasks: TaskCardProps[] = [
   },
 ];
 
-// Generate more diverse mock templates with random attributes
-const generateMockTemplates = (): TemplateCardProps[] => {
-  const platforms = ["小红书", "抖音", "快手", "视频号", "Instagram", "youtube", "X"];
-  const titles = [
-    "小红书爆款穿搭模板",
-    "美妆测评详细解析",
-    "居家好物种草模板",
-    "旅行Vlog记录模板",
-    "美食探店推荐模板",
-    "电子产品开箱测评",
-    "读书笔记分享模板",
-    "健身打卡记录",
-    "手工DIY教程",
-    "母婴育儿经验分享",
-    "数码产品评测模板",
-    "户外运动体验记录",
-    "美甲新品分享模板",
-    "职场技能分享",
-  ];
-  
-  return Array.from({ length: 21 }, (_, i) => ({
-    id: `template-${i + 1}`,
-    title: titles[i % titles.length],
-    image: `https://images.unsplash.com/photo-${148 + i % 5}${5 + i % 3}958449943-2429e8be8625?w=300&h=200&auto=format&fit=crop`,
-    views: Math.floor(Math.random() * 5000) + 500,
-    likes: Math.floor(Math.random() * 500) + 50,
-    isFree: i % 3 === 0,
-    platform: platforms[i % platforms.length],
-  }));
-};
-
-const mockTemplates = generateMockTemplates();
-
 const HomePage: React.FC = () => {
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [filteredTemplates, setFilteredTemplates] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [sortBy, setSortBy] = useState("newest");
+  const [userFavorites, setUserFavorites] = useState<string[]>([]);
   const [filters, setFilters] = useState({
     platforms: [] as string[],
     industries: [] as string[],
     fees: [] as string[],
     types: [] as string[],
   });
-  const [sortBy, setSortBy] = useState("newest");
-  const [isLoading, setIsLoading] = useState(false);
 
-  const filteredTemplates = useMemo(() => {
-    let templates = [...mockTemplates];
+  useEffect(() => {
+    fetchTemplates();
+    fetchUserFavorites();
+  }, []);
+
+  useEffect(() => {
+    let sorted = [...templates];
     
-    // Filter by platform
-    if (filters.platforms.length > 0) {
-      templates = templates.filter((template) => {
-        return filters.platforms.includes(template.platform);
-      });
-    }
-    
-    // Filter by fee
-    if (filters.fees.length > 0) {
-      templates = templates.filter((template) => {
-        const feeMatches = template.isFree 
-          ? filters.fees.includes("免费") 
-          : filters.fees.includes("付费");
-        
-        return feeMatches;
-      });
-    }
-    
-    // Sort templates based on sortBy value
     if (sortBy === "newest") {
-      // Sort by id as a proxy for creation date (higher id = newer)
-      templates = templates.sort((a, b) => 
-        parseInt(b.id.split('-')[1]) - parseInt(a.id.split('-')[1])
+      sorted = sorted.sort((a, b) => 
+        new Date(b.created_at || Date.now()).getTime() - new Date(a.created_at || Date.now()).getTime()
       );
     } else if (sortBy === "popular") {
-      // Sort by views
-      templates = templates.sort((a, b) => b.views - a.views);
-    } else if (sortBy === "recommended") {
-      // Sort by likes
-      templates = templates.sort((a, b) => b.likes - a.likes);
+      sorted = sorted.sort((a, b) => (b.views || 0) - (a.views || 0));
+    } else {
+      sorted = sorted.sort((a, b) => (b.likes || 0) - (a.likes || 0));
     }
     
-    return templates;
-  }, [filters, sortBy]);
+    setFilteredTemplates(sorted);
+  }, [templates, sortBy]);
+
+  const fetchTemplates = async () => {
+    setIsLoading(true);
+    try {
+      const { data: supabaseTemplates, error } = await supabase
+        .from('templates')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        throw error;
+      }
+      
+      if (supabaseTemplates && supabaseTemplates.length > 0) {
+        const formattedTemplates = supabaseTemplates.map(template => ({
+          id: template.id,
+          title: template.title || '无标题模板',
+          image: template.image_url,
+          html_content: template.content || "",
+          views: Math.floor(Math.random() * 5000) + 3000,
+          likes: Math.floor(Math.random() * 1000) + 500,
+          isFree: true,
+          platform: "通用",
+          created_at: template.created_at
+        }));
+        
+        console.log("Loaded templates from database:", 
+                    formattedTemplates.map(t => ({
+                      id: t.id, 
+                      title: t.title, 
+                      hasHtml: !!t.html_content
+                    })));
+        
+        setTemplates(formattedTemplates);
+        setFilteredTemplates(formattedTemplates);
+      } else {
+        const savedTemplates = JSON.parse(localStorage.getItem('templates') || '[]');
+        
+        if (savedTemplates.length > 0) {
+          const formattedTemplates = savedTemplates.map((template: any) => {
+            const enhancedViews = Math.floor(Math.random() * 5000) + 3000;
+            const enhancedLikes = Math.floor(Math.random() * 1000) + 500;
+            
+            return {
+              id: template.id,
+              title: template.title,
+              image: template.image,
+              html_content: template.html_content || "",
+              views: enhancedViews,
+              likes: enhancedLikes,
+              isFree: template.isFree !== undefined ? template.isFree : true,
+              platform: template.platform || template.platforms?.[0] || "通用",
+              created_at: template.created_at || new Date().toISOString()
+            };
+          });
+          
+          setTemplates(formattedTemplates);
+          setFilteredTemplates(formattedTemplates);
+        } else {
+          setTemplates([]);
+          setFilteredTemplates([]);
+        }
+      }
+      
+    } catch (error) {
+      console.error("Error fetching templates:", error);
+      toast.error("加载模板失败，请刷新页面重试");
+      
+      setTemplates([]);
+      setFilteredTemplates([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchUserFavorites = async () => {
+    try {
+      const favoriteIds = JSON.parse(localStorage.getItem('favoriteTemplates') || '[]');
+      setUserFavorites(favoriteIds);
+    } catch (error) {
+      console.error("Error fetching user favorites:", error);
+    }
+  };
+
+  const handleToggleFavorite = async (id: string) => {
+    try {
+      const isFavorited = userFavorites.includes(id);
+      let updatedFavorites: string[];
+      
+      if (isFavorited) {
+        updatedFavorites = userFavorites.filter(templateId => templateId !== id);
+        setUserFavorites(updatedFavorites);
+        toast.success("已取消收藏");
+      } else {
+        updatedFavorites = [...userFavorites, id];
+        setUserFavorites(updatedFavorites);
+        toast.success("已添加到收藏");
+      }
+      
+      localStorage.setItem('favoriteTemplates', JSON.stringify(updatedFavorites));
+      
+      setTemplates(prev => 
+        prev.map(template => 
+          template.id === id 
+            ? { ...template, likes: template.likes + (isFavorited ? -1 : 1) } 
+            : template
+        )
+      );
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+      toast.error("收藏操作失败，请重试");
+    }
+  };
 
   const handleFilterChange = (newFilters: {
     platforms: string[];
@@ -162,6 +228,27 @@ const HomePage: React.FC = () => {
     types: string[];
   }) => {
     setFilters(newFilters);
+    
+    let filtered = [...templates];
+    
+    if (newFilters.platforms.length > 0) {
+      filtered = filtered.filter(template => 
+        newFilters.platforms.some(p => template.platform.includes(p))
+      );
+    }
+    
+    if (newFilters.fees.length > 0) {
+      filtered = filtered.filter(template => 
+        (newFilters.fees.includes('free') && template.isFree) || 
+        (newFilters.fees.includes('paid') && !template.isFree)
+      );
+    }
+    
+    setFilteredTemplates(filtered);
+  };
+
+  const loadMore = async () => {
+    toast.info("加载更多模板...");
   };
 
   return (
@@ -186,13 +273,13 @@ const HomePage: React.FC = () => {
         <TaskCarousel tasks={mockTasks} />
       </div>
       
-      {/* Templates Section - Styled like Inspiration Page */}
+      {/* Templates Section - Copied from InspirationPage */}
       <div>
         <TemplateFilter onFilterChange={handleFilterChange} />
         
         <div className="bg-white rounded-2xl shadow-sm p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg font-semibold text-nova-dark-gray">热门模板</h2>
+            <h2 className="text-lg font-semibold text-nova-dark-gray">热门灵感</h2>
             <div className="flex">
               <button 
                 onClick={() => setSortBy("newest")}
@@ -221,16 +308,18 @@ const HomePage: React.FC = () => {
             </div>
           ) : filteredTemplates.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {filteredTemplates.map((template) => (
+              {filteredTemplates.map(template => (
                 <TemplateCard 
                   key={template.id} 
                   {...template} 
+                  isFavorite={userFavorites.includes(template.id)}
+                  onToggleFavorite={() => handleToggleFavorite(template.id)}
                 />
               ))}
             </div>
           ) : (
             <div className="text-center py-20">
-              <p className="text-nova-gray">未找到符合条件的模板</p>
+              <p className="text-nova-gray">暂无模板数据</p>
             </div>
           )}
           
@@ -238,7 +327,7 @@ const HomePage: React.FC = () => {
             <div className="flex justify-center mt-8">
               <button 
                 className="nova-button bg-white text-nova-blue border border-nova-blue hover:bg-blue-50"
-                onClick={() => {}}
+                onClick={loadMore}
               >
                 加载更多
               </button>
