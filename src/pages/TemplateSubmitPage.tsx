@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { CameraIcon, FileUp, Plus, X, Code, AlertTriangle, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -10,7 +9,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
-import { supabase, checkStorageBucket, ensureStorageBucket } from "@/integrations/supabase/client";
+import { supabase, checkStorageBucket, ensureStorageBucket, saveTemplate } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -248,9 +247,7 @@ const TemplateSubmitPage: React.FC = () => {
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData?.user?.id;
       
-      if (!userId) {
-        console.log("User not logged in, using anonymous upload");
-      }
+      console.log("Current user status:", userId ? "已登录" : "匿名用户");
 
       let coverImageUrl = "";
       
@@ -297,18 +294,14 @@ const TemplateSubmitPage: React.FC = () => {
         coverImageUrl = "https://images.unsplash.com/photo-1721322800607-8c38375eef04";
       }
       
-      const { data: template, error } = await supabase
-        .from('templates')
-        .insert({
-          title: data.title,
-          description: data.description || "",
-          image_url: coverImageUrl,
-          content: htmlTemplateFile?.content || "",
-          user_id: userId,
-          is_public: true
-        })
-        .select()
-        .single();
+      const { data: template, error } = await saveTemplate({
+        title: data.title,
+        description: data.description || "",
+        image_url: coverImageUrl,
+        content: htmlTemplateFile?.content || "",
+        user_id: userId || null,
+        is_public: true
+      });
       
       if (error) {
         console.error("Error saving template:", error);
@@ -562,7 +555,7 @@ const TemplateSubmitPage: React.FC = () => {
                   </label>
                 </div>
                 <div className="text-xs text-nova-gray italic mb-4">
-                  选择此选项后，将根据HTML代码渲染封面图
+                  选择此���项后，将根据HTML代码渲染封面图
                   {!storageBucketExists ? " （推荐，因为存储服务暂不可用）" : ""}
                 </div>
                 
