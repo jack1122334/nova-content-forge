@@ -2,6 +2,7 @@
 import React from "react";
 import { Heart, Eye } from "lucide-react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { toast } from "sonner";
 
 export interface TemplateCardProps {
   id: string;
@@ -16,6 +17,7 @@ export interface TemplateCardProps {
 }
 
 const TemplateCard: React.FC<TemplateCardProps> = ({
+  id,
   title,
   image,
   views,
@@ -25,6 +27,15 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
   isFavorite = false,
   onToggleFavorite,
 }) => {
+  const handleToggleFavorite = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (onToggleFavorite) {
+      onToggleFavorite();
+      toast.success(isFavorite ? "已取消收藏" : "已添加到收藏");
+    }
+  };
+  
   return (
     <div className="nova-card">
       <div className="relative overflow-hidden">
@@ -56,10 +67,8 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
           </div>
           <button 
             className="flex items-center text-xs"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (onToggleFavorite) onToggleFavorite();
-            }}
+            onClick={handleToggleFavorite}
+            aria-label={isFavorite ? "取消收藏" : "添加收藏"}
           >
             <Heart 
               className={`h-3 w-3 mr-1 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-nova-gray'}`} 

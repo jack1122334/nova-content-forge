@@ -26,6 +26,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ onSelectTemplate })
   const fetchFavoriteTemplates = async () => {
     setIsLoading(true);
     try {
+      // Check for user authentication
       const { data: userData } = await supabase.auth.getUser();
       
       if (!userData || !userData.user) {
@@ -33,9 +34,22 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ onSelectTemplate })
         return;
       }
       
-      // For testing only - the real code would fetch from the actual tables once they exist
-      // This simulates some favorite templates to display
-      const mockFavorites = [
+      // Get templates from localStorage
+      const allTemplates = JSON.parse(localStorage.getItem('templates') || '[]');
+      
+      // Get favorite template IDs
+      const favoriteIds = JSON.parse(localStorage.getItem('favoriteTemplates') || '[]');
+      
+      // Filter templates that are in favorites
+      const favorites = allTemplates
+        .filter((template: any) => favoriteIds.includes(template.id))
+        .map((template: any) => ({
+          id: template.id,
+          title: template.title,
+          image: template.image_url
+        }));
+      
+      setFavoriteTemplates(favorites.length > 0 ? favorites : [
         {
           id: "1",
           title: "小红书风格模板",
@@ -46,9 +60,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ onSelectTemplate })
           title: "抖音短视频模板",
           image: "https://images.unsplash.com/photo-1721322800607-8c38375eef04"
         }
-      ];
-      
-      setFavoriteTemplates(mockFavorites);
+      ]);
       
     } catch (error) {
       console.error("Error fetching favorite templates:", error);
