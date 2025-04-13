@@ -157,7 +157,7 @@ const StudioPage: React.FC = () => {
     if (styleOption === "use-template") {
       setSelectedTemplate(templateId);
       setSelectedTemplateHtml(htmlContent);
-      console.log("Selected template updated:", templateId, "with HTML:", htmlContent?.substring(0, 100) + "...");
+      console.log("Selected template updated:", templateId, "with HTML:", htmlContent);
     }
   };
   

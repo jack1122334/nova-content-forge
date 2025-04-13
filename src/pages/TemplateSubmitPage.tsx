@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { CameraIcon, FileUp, Plus, X, Code } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -32,7 +31,6 @@ type FileWithPreview = {
   name: string;
   type: string;
   preview?: string;
-  content?: string;
 };
 
 const TemplateSubmitPage: React.FC = () => {
@@ -41,7 +39,6 @@ const TemplateSubmitPage: React.FC = () => {
   const [htmlTemplateFile, setHtmlTemplateFile] = useState<FileWithPreview | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [autoRenderCover, setAutoRenderCover] = useState(false);
-  const [renderedCoverImage, setRenderedCoverImage] = useState<string | null>(null);
   const navigate = useNavigate();
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -113,69 +110,9 @@ const TemplateSubmitPage: React.FC = () => {
       
       console.log("HTML template file content loaded:", content.substring(0, 100) + "...");
       toast.success("HTML模板文件上传成功");
-      
-      // If auto render is enabled, generate cover from HTML
-      if (autoRenderCover) {
-        renderHtmlCover(content);
-      }
     };
     
     reader.readAsText(file);
-  };
-
-  const renderHtmlCover = async (htmlContent: string) => {
-    try {
-      // Call the Coze API to render the HTML as an image
-      console.log("Rendering HTML cover with content:", htmlContent.substring(0, 100) + "...");
-      
-      const payload = {
-        workflow_id: "7492378369356333090",
-        parameters: {
-          brand_brief: "模板渲染",
-          template_html: htmlContent
-        }
-      };
-      
-      toast.loading("正在渲染封面图...");
-      
-      const response = await fetch("https://api.coze.cn/v1/workflow/run", {
-        method: "POST",
-        headers: {
-          "Authorization": "Bearer pat_3tnCAPW9JAYvDu4NHIhvlmPUgDx4eYBWqQjdDKbDQgHihhh1yyDDhHPKUVDynzn8",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
-      });
-      
-      if (!response.ok) {
-        throw new Error(`API请求失败 (状态码: ${response.status})`);
-      }
-      
-      const result = await response.json();
-      console.log("Coze API response for render:", result);
-      
-      if (result.code === 0 && result.data) {
-        const outputData = JSON.parse(result.data);
-        
-        if (outputData.img_url) {
-          setRenderedCoverImage(outputData.img_url);
-          setCoverImage({
-            file: new File([], "rendered-cover.jpg"),
-            name: "rendered-cover.jpg",
-            type: "image/jpeg",
-            preview: outputData.img_url
-          });
-          toast.success("封面图渲染成功");
-        } else {
-          toast.error("渲染失败: API未返回图片");
-        }
-      } else {
-        toast.error(`渲染失败: ${result.msg || `错误代码 ${result.code}`}`);
-      }
-    } catch (error) {
-      console.error("Error rendering HTML cover:", error);
-      toast.error("渲染封面图时出错");
-    }
   };
 
   const removeFile = (index: number) => {
@@ -184,23 +121,11 @@ const TemplateSubmitPage: React.FC = () => {
   
   const removeHtmlTemplate = () => {
     setHtmlTemplateFile(null);
-    if (autoRenderCover) {
-      setRenderedCoverImage(null);
-      setCoverImage(null);
-    }
   };
 
   const toggleAutoRenderCover = (checked: boolean) => {
     setAutoRenderCover(checked);
     form.setValue("autoRenderCover", checked);
-    
-    // If enabling auto render and we have HTML, render it
-    if (checked && htmlTemplateFile?.content) {
-      renderHtmlCover(htmlTemplateFile.content);
-    } else if (!checked) {
-      // If disabling, clear the rendered cover
-      setRenderedCoverImage(null);
-    }
   };
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
@@ -229,8 +154,8 @@ const TemplateSubmitPage: React.FC = () => {
       
       if (coverImage) {
         coverImageUrl = coverImage.preview || "";
-      } else if (autoRenderCover && renderedCoverImage) {
-        coverImageUrl = renderedCoverImage;
+      } else if (autoRenderCover) {
+        coverImageUrl = "https://images.unsplash.com/photo-1721322800607-8c38375eef04";
       }
       
       const templateData = {
@@ -259,12 +184,6 @@ const TemplateSubmitPage: React.FC = () => {
       
       const existingTemplates = JSON.parse(localStorage.getItem('templates') || '[]');
       localStorage.setItem('templates', JSON.stringify([...existingTemplates, templateData]));
-      
-      // Add to favorites automatically
-      const favoriteIds = JSON.parse(localStorage.getItem('favoriteTemplates') || '[]');
-      if (!favoriteIds.includes(templateData.id)) {
-        localStorage.setItem('favoriteTemplates', JSON.stringify([...favoriteIds, templateData.id]));
-      }
       
       toast.success("模板提交成功");
       
