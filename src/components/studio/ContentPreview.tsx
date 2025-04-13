@@ -72,9 +72,9 @@ const ContentPreview: React.FC<ContentPreviewProps> = ({
         <TabsContent value="preview" className="h-[calc(100%-40px)] flex flex-col">
           <div className="flex-1 overflow-hidden mb-4">
             <div className="bg-gray-50 rounded-lg p-4 h-full overflow-auto">
-              <div className="max-w-[375px] mx-auto bg-white rounded-xl overflow-hidden shadow">
+              <div className="max-w-[375px] mx-auto bg-white rounded-xl overflow-hidden shadow flex flex-row">
                 {generatedContent?.img_url ? (
-                  <div className="w-full">
+                  <div className="w-1/2">
                     <AspectRatio ratio={3/4} className="bg-gray-100">
                       <img 
                         src={generatedContent.img_url} 
@@ -88,7 +88,7 @@ const ContentPreview: React.FC<ContentPreviewProps> = ({
                     </AspectRatio>
                   </div>
                 ) : (
-                  <div className="w-full">
+                  <div className="w-1/2">
                     <AspectRatio ratio={3/4} className="bg-gray-100">
                       <img 
                         src="https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=600&h=800"
@@ -98,7 +98,7 @@ const ContentPreview: React.FC<ContentPreviewProps> = ({
                     </AspectRatio>
                   </div>
                 )}
-                <div className="p-4">
+                <div className="w-1/2 p-4 overflow-auto">
                   <div dangerouslySetInnerHTML={{ 
                     __html: markdownToHtml(generatedContent?.text || "") 
                   }} />
