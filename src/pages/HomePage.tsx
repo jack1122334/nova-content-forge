@@ -5,6 +5,7 @@ import Stats from "@/components/home/Stats";
 import TaskCarousel from "@/components/home/TaskCarousel";
 import TemplateFilter from "@/components/home/TemplateFilter";
 import TemplateGrid from "@/components/home/TemplateGrid";
+import TemplateCard from "@/components/home/TemplateCard";
 import { TaskCardProps } from "@/components/marketplace/TaskCard";
 import { TemplateCardProps } from "@/components/home/TemplateCard";
 import { Loader2 } from "lucide-react";
