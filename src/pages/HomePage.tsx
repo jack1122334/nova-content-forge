@@ -252,10 +252,8 @@ const HomePage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-16 relative overflow-hidden">
-      <DecorativeElements />
-      
-      <div className="relative flex flex-col items-center justify-center py-24 space-y-12 overflow-hidden">
+    <div className="space-y-8 relative overflow-hidden">
+      <div className="relative flex flex-col items-center justify-center py-16 space-y-8 overflow-hidden">
         <h1 className="text-4xl md:text-6xl font-bold text-center leading-tight max-w-4xl animate-fade-in">
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-nova-deep-purple via-nova-blue to-nova-hot-pink font-extrabold">
             Nova
@@ -280,14 +278,10 @@ const HomePage: React.FC = () => {
         </div>
       </div>
       
-      <div className="relative px-6 py-12 rounded-3xl backdrop-blur-lg bg-white/20 border border-white/30 overflow-hidden shadow-xl">
-        <TaskCarousel tasks={mockTasks} />
-      </div>
-      
       <div className="relative">
         <TemplateFilter onFilterChange={handleFilterChange} />
         
-        <div className="backdrop-blur-xl bg-white/20 border border-white/30 rounded-3xl p-8 overflow-hidden shadow-xl">
+        <div className="backdrop-blur-xl bg-white/20 border border-white/30 rounded-3xl p-8 overflow-hidden shadow-xl mt-4">
           <div className="flex justify-between items-center mb-8">
             <div className="flex items-center">
               <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-nova-deep-purple to-nova-blue mr-2">热门灵感</h2>

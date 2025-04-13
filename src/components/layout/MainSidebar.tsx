@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
@@ -55,7 +54,6 @@ const MainSidebar: React.FC<MainSidebarProps> = ({ userType, setUserType }) => {
   const { user, profile, signOut } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
   
-  // Auto-collapse sidebar on mobile
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) {
@@ -103,7 +101,7 @@ const MainSidebar: React.FC<MainSidebarProps> = ({ userType, setUserType }) => {
         <SidebarHeader className="flex flex-col gap-2 p-4">
           <div className="flex items-center justify-between">
             <Link to="/" className={cn("flex items-center", isCollapsed && "md:hidden")}>
-              <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-nova-blue to-nova-deep-purple">Nova</h1>
+              <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-nova-blue to-nova-deep-purple">Nova</h1>
             </Link>
             <Button 
               variant="ghost" 
