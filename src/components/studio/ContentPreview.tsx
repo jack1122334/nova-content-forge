@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -29,28 +28,21 @@ const ContentPreview: React.FC<ContentPreviewProps> = ({
     }
   };
 
-  // Convert markdown to HTML (basic implementation)
   const markdownToHtml = (markdown: string) => {
     if (!markdown) return "";
     
-    // Convert headers
     let html = markdown.replace(/^# (.*$)/gm, '<h1 class="text-xl font-bold my-2">$1</h1>');
     html = html.replace(/^## (.*$)/gm, '<h2 class="text-lg font-bold my-2">$1</h2>');
     
-    // Convert bold
     html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     
-    // Convert italic
     html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
     
-    // Convert bullet points
     html = html.replace(/^\* (.*$)/gm, '<li class="ml-4">$1</li>');
     html = html.replace(/^• (.*$)/gm, '<li class="ml-4">$1</li>');
     
-    // Convert line breaks
     html = html.replace(/\n/g, '<br/>');
     
-    // Convert emoji indicators
     html = html.replace(/✅/g, '<span class="text-green-500">✅</span>');
     html = html.replace(/❌/g, '<span class="text-red-500">❌</span>');
     html = html.replace(/💕|❤️|💪|🔍|🌟|⚠️|👉|😱|🙌🏻/g, (match) => `<span>${match}</span>`);
@@ -59,23 +51,23 @@ const ContentPreview: React.FC<ContentPreviewProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-6 h-full">
-      <h3 className="text-lg font-medium text-nova-dark-gray mb-4">预览效果</h3>
+    <div className="bg-[#1A1F2C] rounded-2xl shadow-lg p-6 h-full">
+      <h3 className="text-lg font-medium text-white/80 mb-4">预览效果</h3>
       
       <Tabs defaultValue="preview" className="h-[calc(100%-48px)]">
-        <TabsList className="w-full mb-4">
-          <TabsTrigger value="preview" className="flex-1">小红书风格预览</TabsTrigger>
-          <TabsTrigger value="text" className="flex-1">文本内容</TabsTrigger>
-          <TabsTrigger value="images" className="flex-1">图片素材</TabsTrigger>
+        <TabsList className="w-full mb-4 bg-[#222932]">
+          <TabsTrigger value="preview" className="flex-1 text-white/70 data-[state=active]:text-white data-[state=active]:bg-[#2C3440]">小红书风格预览</TabsTrigger>
+          <TabsTrigger value="text" className="flex-1 text-white/70 data-[state=active]:text-white data-[state=active]:bg-[#2C3440]">文本内容</TabsTrigger>
+          <TabsTrigger value="images" className="flex-1 text-white/70 data-[state=active]:text-white data-[state=active]:bg-[#2C3440]">图片素材</TabsTrigger>
         </TabsList>
         
         <TabsContent value="preview" className="h-[calc(100%-40px)] flex flex-col">
           <div className="flex-1 overflow-hidden mb-4">
-            <div className="bg-gray-50 rounded-lg p-4 h-full overflow-auto">
-              <div className="max-w-[90%] mx-auto bg-white rounded-xl overflow-hidden shadow flex flex-row">
+            <div className="bg-[#222932] rounded-lg p-4 h-full overflow-auto">
+              <div className="max-w-[90%] mx-auto bg-[#2C3440] rounded-xl overflow-hidden shadow-lg flex flex-row">
                 {generatedContent?.img_url ? (
-                  <div className="w-1/2 border-r">
-                    <AspectRatio ratio={1} className="bg-gray-100">
+                  <div className="w-1/2 border-r border-white/10">
+                    <AspectRatio ratio={1} className="bg-[#3A4250]">
                       <img 
                         src={generatedContent.img_url} 
                         alt="Preview" 
@@ -88,8 +80,8 @@ const ContentPreview: React.FC<ContentPreviewProps> = ({
                     </AspectRatio>
                   </div>
                 ) : (
-                  <div className="w-1/2 border-r">
-                    <AspectRatio ratio={1} className="bg-gray-100">
+                  <div className="w-1/2 border-r border-white/10">
+                    <AspectRatio ratio={1} className="bg-[#3A4250]">
                       <img 
                         src="https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=600&h=800"
                         alt="Preview" 
@@ -98,7 +90,7 @@ const ContentPreview: React.FC<ContentPreviewProps> = ({
                     </AspectRatio>
                   </div>
                 )}
-                <div className="w-1/2 p-4 h-[400px] overflow-auto">
+                <div className="w-1/2 p-4 h-[400px] overflow-auto text-white/90">
                   <div dangerouslySetInnerHTML={{ 
                     __html: markdownToHtml(generatedContent?.text || "") 
                   }} />
