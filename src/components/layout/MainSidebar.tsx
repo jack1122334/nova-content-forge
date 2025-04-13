@@ -10,7 +10,8 @@ import {
   User, 
   Briefcase,
   LogOut,
-  ChevronRight
+  ChevronRight,
+  Users
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
@@ -38,6 +39,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface MainSidebarProps {
   userType: "personal" | "brand";
@@ -76,38 +78,6 @@ const MainSidebar: React.FC<MainSidebarProps> = ({ userType, setUserType }) => {
               <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-nova-blue to-nova-deep-purple">Nova</h1>
             </Link>
             <SidebarTrigger />
-          </div>
-          
-          <div className="flex gap-2 mt-4">
-            <Button
-              variant={userType === "personal" ? "default" : "ghost"}
-              onClick={() => setUserType("personal")}
-              size="sm"
-              className={userType === "personal" 
-                ? "bg-gradient-to-r from-nova-blue to-nova-deep-purple text-white hover:from-nova-blue/90 hover:to-nova-deep-purple/90 transition-all" 
-                : "text-nova-dark-gray hover:text-nova-blue"
-              }
-            >
-              我是个人
-            </Button>
-            <Button
-              variant={userType === "brand" ? "default" : "ghost"}
-              onClick={() => setUserType("brand")}
-              size="sm"
-              className={userType === "brand" 
-                ? "bg-gradient-to-r from-nova-blue to-nova-deep-purple text-white hover:from-nova-blue/90 hover:to-nova-deep-purple/90 transition-all" 
-                : "text-nova-dark-gray hover:text-nova-blue"
-              }
-            >
-              我是品牌方
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-nova-dark-gray hover:text-nova-blue"
-            >
-              我是代理商
-            </Button>
           </div>
         </SidebarHeader>
         
@@ -171,36 +141,69 @@ const MainSidebar: React.FC<MainSidebarProps> = ({ userType, setUserType }) => {
         
         <SidebarFooter className="p-4">
           {user ? (
-            <div className="flex items-center space-x-3">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <div className="flex items-center space-x-2 cursor-pointer p-2 hover:bg-white/50 rounded-lg transition-all">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={profile?.avatar_url || ""} />
-                      <AvatarFallback className="bg-gradient-to-r from-nova-blue to-nova-deep-purple text-white">
-                        {profile?.username?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm font-medium text-nova-dark-gray">
-                      {profile?.username || user.email?.split('@')[0]}
-                    </span>
-                    <ChevronRight className="h-4 w-4 text-gray-400" />
+            <div className="flex flex-col space-y-4">
+              <div className="flex items-center space-x-3">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <div className="flex items-center space-x-2 cursor-pointer p-2 hover:bg-white/50 rounded-lg transition-all">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={profile?.avatar_url || ""} />
+                        <AvatarFallback className="bg-gradient-to-r from-nova-blue to-nova-deep-purple text-white">
+                          {profile?.username?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm font-medium text-nova-dark-gray">
+                        {profile?.username || user.email?.split('@')[0]}
+                      </span>
+                      <ChevronRight className="h-4 w-4 text-gray-400" />
+                    </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem asChild>
+                      <Link to="/profile" className="flex items-center">
+                        <User className="mr-2 h-4 w-4" />
+                        <span>个人中心</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout} className="text-red-500">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>退出登录</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+              
+              <div className="p-2 bg-white/30 backdrop-blur-sm rounded-lg border border-gray-200/50">
+                <div className="text-xs font-medium text-gray-500 mb-2">用户类型</div>
+                <RadioGroup 
+                  value={userType} 
+                  onValueChange={(value) => setUserType(value as "personal" | "brand")}
+                  className="flex flex-col gap-2"
+                >
+                  <div className="flex items-center space-x-2 p-1.5 rounded-md hover:bg-white/50 transition-all">
+                    <RadioGroupItem value="personal" id="personal" className="text-nova-blue" />
+                    <label htmlFor="personal" className="text-sm font-medium cursor-pointer flex items-center">
+                      <User className="h-3.5 w-3.5 mr-1.5" />
+                      我是个人
+                    </label>
                   </div>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem asChild>
-                    <Link to="/profile" className="flex items-center">
-                      <User className="mr-2 h-4 w-4" />
-                      <span>个人中心</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-red-500">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>退出登录</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  <div className="flex items-center space-x-2 p-1.5 rounded-md hover:bg-white/50 transition-all">
+                    <RadioGroupItem value="brand" id="brand" className="text-nova-blue" />
+                    <label htmlFor="brand" className="text-sm font-medium cursor-pointer flex items-center">
+                      <Briefcase className="h-3.5 w-3.5 mr-1.5" />
+                      我是品牌方
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2 p-1.5 rounded-md hover:bg-white/50 transition-all">
+                    <RadioGroupItem value="agency" id="agency" disabled className="text-nova-blue" />
+                    <label htmlFor="agency" className="text-sm font-medium cursor-pointer text-gray-400 flex items-center">
+                      <Users className="h-3.5 w-3.5 mr-1.5" />
+                      我是代理商
+                    </label>
+                  </div>
+                </RadioGroup>
+              </div>
             </div>
           ) : (
             <div className="flex flex-col gap-2">
