@@ -10,7 +10,7 @@ const InspirationPage: React.FC = () => {
   const [templates, setTemplates] = useState<any[]>([]);
   const [filteredTemplates, setFilteredTemplates] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [sortBy, setSortBy] = useState("popular"); // popular, newest, recommended
+  const [sortBy, setSortBy] = useState("newest"); // Changed default to newest
   const [userFavorites, setUserFavorites] = useState<string[]>([]);
   
   useEffect(() => {
@@ -39,43 +39,63 @@ const InspirationPage: React.FC = () => {
   const fetchTemplates = async () => {
     setIsLoading(true);
     try {
-      // For testing only - the real code would fetch from the actual tables once they exist
-      // This simulates some templates to display in the inspiration page
-      const mockTemplates = [
-        {
-          id: "1",
-          title: "小红书爆款好物种草模板",
-          image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9",
-          views: 542,
-          likes: 128,
-          isFree: true,
-          platform: "小红书",
-          created_at: new Date().toISOString()
-        },
-        {
-          id: "2",
-          title: "抖音短视频脚本模板",
-          image: "https://images.unsplash.com/photo-1721322800607-8c38375eef04",
-          views: 321,
-          likes: 89,
-          isFree: false,
-          platform: "抖音",
-          created_at: new Date(Date.now() - 86400000).toISOString() // yesterday
-        },
-        {
-          id: "3",
-          title: "Instagram 照片排版模板",
-          image: "https://images.unsplash.com/photo-1472396961693-142e6e269027",
-          views: 210,
-          likes: 45,
-          isFree: true,
-          platform: "Instagram",
-          created_at: new Date(Date.now() - 172800000).toISOString() // 2 days ago
-        }
-      ];
+      // Get templates from localStorage
+      const savedTemplates = JSON.parse(localStorage.getItem('templates') || '[]');
       
-      setTemplates(mockTemplates);
-      setFilteredTemplates(mockTemplates);
+      // If we have saved templates, use those
+      if (savedTemplates.length > 0) {
+        // Make sure the templates have all required properties
+        const formattedTemplates = savedTemplates.map((template: any) => ({
+          id: template.id,
+          title: template.title,
+          image: template.image,
+          views: template.views || 0,
+          likes: template.likes || 0,
+          isFree: template.isFree !== undefined ? template.isFree : true,
+          platform: template.platform || template.platforms?.[0] || "通用",
+          created_at: template.created_at || new Date().toISOString()
+        }));
+        
+        setTemplates(formattedTemplates);
+        setFilteredTemplates(formattedTemplates);
+      } else {
+        // Use mock templates as fallback
+        const mockTemplates = [
+          {
+            id: "1",
+            title: "小红书爆款好物种草模板",
+            image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9",
+            views: 542,
+            likes: 128,
+            isFree: true,
+            platform: "小红书",
+            created_at: new Date().toISOString()
+          },
+          {
+            id: "2",
+            title: "抖音短视频脚本模板",
+            image: "https://images.unsplash.com/photo-1721322800607-8c38375eef04",
+            views: 321,
+            likes: 89,
+            isFree: false,
+            platform: "抖音",
+            created_at: new Date(Date.now() - 86400000).toISOString() // yesterday
+          },
+          {
+            id: "3",
+            title: "Instagram 照片排版模板",
+            image: "https://images.unsplash.com/photo-1472396961693-142e6e269027",
+            views: 210,
+            likes: 45,
+            isFree: true,
+            platform: "Instagram",
+            created_at: new Date(Date.now() - 172800000).toISOString() // 2 days ago
+          }
+        ];
+        
+        setTemplates(mockTemplates);
+        setFilteredTemplates(mockTemplates);
+      }
       
     } catch (error) {
       console.error("Error fetching templates:", error);
@@ -87,12 +107,9 @@ const InspirationPage: React.FC = () => {
   
   const fetchUserFavorites = async () => {
     try {
-      const { data: user } = await supabase.auth.getUser();
-      
-      if (user && user.user) {
-        // Mock favorite templates for testing
-        setUserFavorites(["1"]); // Template 1 is favorited
-      }
+      // Get favorite template IDs from localStorage
+      const favoriteIds = JSON.parse(localStorage.getItem('favoriteTemplates') || '[]');
+      setUserFavorites(favoriteIds);
     } catch (error) {
       console.error("Error fetching user favorites:", error);
     }
@@ -128,24 +145,23 @@ const InspirationPage: React.FC = () => {
   
   const handleToggleFavorite = async (id: string) => {
     try {
-      const { data: user } = await supabase.auth.getUser();
-      
-      if (!user || !user.user) {
-        toast.error("请先登录后再收藏模板");
-        return;
-      }
-      
       const isFavorited = userFavorites.includes(id);
+      let updatedFavorites: string[];
       
       if (isFavorited) {
-        // Remove from favorites (mock)
-        setUserFavorites(prev => prev.filter(templateId => templateId !== id));
+        // Remove from favorites
+        updatedFavorites = userFavorites.filter(templateId => templateId !== id);
+        setUserFavorites(updatedFavorites);
         toast.success("已取消收藏");
       } else {
-        // Add to favorites (mock)
-        setUserFavorites(prev => [...prev, id]);
+        // Add to favorites
+        updatedFavorites = [...userFavorites, id];
+        setUserFavorites(updatedFavorites);
         toast.success("已添加到收藏");
       }
+      
+      // Save updated favorites to localStorage
+      localStorage.setItem('favoriteTemplates', JSON.stringify(updatedFavorites));
       
       // Update template like count in the UI
       setTemplates(prev => 

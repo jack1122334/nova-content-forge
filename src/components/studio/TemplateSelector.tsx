@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { ChevronRight, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,14 +25,6 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ onSelectTemplate })
   const fetchFavoriteTemplates = async () => {
     setIsLoading(true);
     try {
-      // Check for user authentication
-      const { data: userData } = await supabase.auth.getUser();
-      
-      if (!userData || !userData.user) {
-        setIsLoading(false);
-        return;
-      }
-      
       // Get templates from localStorage
       const allTemplates = JSON.parse(localStorage.getItem('templates') || '[]');
       
@@ -46,7 +37,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ onSelectTemplate })
         .map((template: any) => ({
           id: template.id,
           title: template.title,
-          image: template.image_url
+          image: template.image
         }));
       
       setFavoriteTemplates(favorites.length > 0 ? favorites : [

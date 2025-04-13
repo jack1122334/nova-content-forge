@@ -121,12 +121,12 @@ const TemplateSubmitPage: React.FC = () => {
   };
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    if (!coverImage && !data.autoRenderCover) {
+    if (!coverImage && !autoRenderCover) {
       toast.error("请上传封面图或选择自动渲染");
       return;
     }
     
-    if (data.autoRenderCover && !htmlTemplateFile) {
+    if (autoRenderCover && !htmlTemplateFile) {
       toast.error("选择自动渲染封面图时，请上传HTML模板文件");
       return;
     }
@@ -140,86 +140,42 @@ const TemplateSubmitPage: React.FC = () => {
     
     try {
       const { data: userData } = await supabase.auth.getUser();
-      if (!userData || !userData.user) {
-        toast.error("请先登录");
-        setIsSubmitting(false);
-        return;
-      }
+      const userId = userData?.user?.id || `anonymous-${Date.now()}`;
 
       let coverImageUrl = "";
       
-      // Upload cover image if available
       if (coverImage) {
-        const coverImagePath = `template-images/${Date.now()}_${coverImage.name}`;
-        const { error: coverUploadError } = await supabase.storage
-          .from('template-images')
-          .upload(coverImagePath, coverImage.file);
-        
-        if (coverUploadError) {
-          throw new Error(`封面图上传失败: ${coverUploadError.message}`);
-        }
-        
-        const { data: coverImageData } = supabase.storage
-          .from('template-images')
-          .getPublicUrl(coverImagePath);
-        
-        coverImageUrl = coverImageData.publicUrl;
-      } else {
-        // Use a placeholder image for auto-rendering
+        coverImageUrl = coverImage.preview || "";
+      } else if (autoRenderCover) {
         coverImageUrl = "https://images.unsplash.com/photo-1721322800607-8c38375eef04";
       }
       
-      // Since we cannot directly access the templates table due to type issues,
-      // we'll use a custom RPC function (or a more generic approach)
-      // For now, we'll simulate a successful submission
-      
-      // Simulate uploading template files
-      if (templateFiles.length > 0) {
-        for (const file of templateFiles) {
-          const filePath = `template-files/${Date.now()}_${file.name}`;
-          await supabase.storage
-            .from('template-files')
-            .upload(filePath, file.file);
-        }
-      }
-      
-      // Upload HTML template file if available
-      if (htmlTemplateFile) {
-        const htmlPath = `template-html/${Date.now()}_${htmlTemplateFile.name}`;
-        await supabase.storage
-          .from('template-html')
-          .upload(htmlPath, htmlTemplateFile.file);
-      }
-      
-      // Simulate storing template data in localStorage for demonstration
       const templateData = {
         id: `temp-${Date.now()}`,
         title: data.title,
         description: data.description || "",
-        image_url: coverImageUrl,
+        image: coverImageUrl,
         platforms: data.platforms,
         industries: data.industries,
         type: data.templateType,
-        is_free: data.pricing === "free",
+        isFree: data.pricing === "free",
         price: data.pricing === "paid" ? parseFloat(data.price || "0") : 0,
         has_html_template: !!htmlTemplateFile,
         auto_render_cover: data.autoRenderCover,
-        user_id: userData.user.id,
+        user_id: userId,
         status: "approved",
         views: 0,
         likes: 0,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        platform: data.platforms[0] || "通用"
       };
       
-      // Store in localStorage for demo purposes
       const existingTemplates = JSON.parse(localStorage.getItem('templates') || '[]');
       localStorage.setItem('templates', JSON.stringify([...existingTemplates, templateData]));
       
       toast.success("模板提交成功");
       
-      setTimeout(() => {
-        navigate('/inspiration');
-      }, 1500);
+      navigate('/inspiration');
       
     } catch (error) {
       console.error("Template submission error:", error);
