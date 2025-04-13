@@ -11,6 +11,8 @@ import CustomRequirements from "@/components/studio/CustomRequirements";
 import ContentPreview from "@/components/studio/ContentPreview";
 import { TaskCardProps } from "@/components/marketplace/TaskCard";
 import { useAuth } from "@/context/AuthContext";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { WandSparkles, Layout } from "lucide-react";
 
 const StudioPage: React.FC = () => {
   const location = useLocation();
@@ -27,6 +29,7 @@ const StudioPage: React.FC = () => {
   const [task, setTask] = useState<TaskCardProps | null>(null);
   const [taskDetailDescription, setTaskDetailDescription] = useState("");
   const [apiError, setApiError] = useState<string | null>(null);
+  const [styleOption, setStyleOption] = useState("generate-new");
   
   useEffect(() => {
     // Check if there's a task passed from marketplace
@@ -63,7 +66,7 @@ const StudioPage: React.FC = () => {
           hotspot: hotspots,
           account_info: accountInfo,
           text_style: customRequirements || "",
-          template: selectedTemplate || ""
+          template: styleOption === "use-template" && selectedTemplate ? selectedTemplate : ""
         }
       };
 
@@ -122,6 +125,13 @@ const StudioPage: React.FC = () => {
   const handleGenerate = async () => {
     setGenerating(true);
     
+    // Validate template selection when using template option
+    if (styleOption === "use-template" && !selectedTemplate) {
+      toast.error("请选择一个模板");
+      setGenerating(false);
+      return;
+    }
+    
     try {
       const success = await generateContent();
       if (success) {
@@ -142,8 +152,10 @@ const StudioPage: React.FC = () => {
   };
   
   const handleTemplateSelect = (templateId: string) => {
-    setSelectedTemplate(templateId);
-    console.log("Selected template updated:", templateId);
+    if (styleOption === "use-template") {
+      setSelectedTemplate(templateId);
+      console.log("Selected template updated:", templateId);
+    }
   };
   
   const handleTaskDetailChange = (detail: string) => {
@@ -163,7 +175,48 @@ const StudioPage: React.FC = () => {
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-6">
-          <TemplateSelector onSelectTemplate={handleTemplateSelect} />
+          <div className="bg-white rounded-2xl shadow-sm p-6">
+            <h3 className="text-lg font-medium text-nova-dark-gray mb-4">内容风格选择</h3>
+            <RadioGroup 
+              defaultValue="generate-new" 
+              value={styleOption}
+              onValueChange={setStyleOption}
+              className="space-y-3"
+            >
+              <div className="flex items-center space-x-2 p-3 rounded-lg border border-gray-100 hover:border-nova-blue/50 transition-colors">
+                <RadioGroupItem value="generate-new" id="generate-new" />
+                <label htmlFor="generate-new" className="flex items-center space-x-2 cursor-pointer w-full">
+                  <div className="w-10 h-10 rounded-full bg-nova-blue/10 flex items-center justify-center">
+                    <WandSparkles className="h-5 w-5 text-nova-blue" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-medium text-nova-dark-gray">为我生成全新风格</div>
+                    <div className="text-xs text-nova-gray">AI 将根据您的偏好智能生成内容风格</div>
+                  </div>
+                </label>
+              </div>
+              <div className="flex items-center space-x-2 p-3 rounded-lg border border-gray-100 hover:border-nova-blue/50 transition-colors">
+                <RadioGroupItem value="use-template" id="use-template" />
+                <label htmlFor="use-template" className="flex items-center space-x-2 cursor-pointer w-full">
+                  <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center">
+                    <Layout className="h-5 w-5 text-teal-500" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-medium text-nova-dark-gray">使用现有模板</div>
+                    <div className="text-xs text-nova-gray">从您收藏的模板中选择一个作为风格基础</div>
+                  </div>
+                </label>
+              </div>
+            </RadioGroup>
+          </div>
+          
+          {styleOption === "use-template" && (
+            <TemplateSelector 
+              onSelectTemplate={handleTemplateSelect} 
+              selectedTemplate={selectedTemplate}
+            />
+          )}
+          
           <CustomRequirements onChange={setCustomRequirements} />
           <div className="flex justify-center">
             <Button
@@ -201,7 +254,7 @@ const StudioPage: React.FC = () => {
                 </div>
                 <h3 className="text-lg font-medium text-nova-dark-gray mb-2">准备好创作了吗？</h3>
                 <p className="text-sm text-nova-gray">
-                  选择模板、输���要求，点击"内容生成"按钮开始创作
+                  选择模板、输入要求，点击"内容生成"按钮开始创作
                 </p>
               </div>
             </div>

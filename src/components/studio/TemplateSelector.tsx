@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { ChevronRight, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,10 +12,10 @@ interface Template {
 
 interface TemplateSelectorProps {
   onSelectTemplate?: (templateId: string) => void;
+  selectedTemplate?: string | null;
 }
 
-const TemplateSelector: React.FC<TemplateSelectorProps> = ({ onSelectTemplate }) => {
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+const TemplateSelector: React.FC<TemplateSelectorProps> = ({ onSelectTemplate, selectedTemplate }) => {
   const [favoriteTemplates, setFavoriteTemplates] = useState<Template[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -62,7 +63,6 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ onSelectTemplate })
   };
 
   const handleTemplateSelect = (templateId: string) => {
-    setSelectedTemplate(templateId);
     if (onSelectTemplate) {
       onSelectTemplate(templateId);
     }
@@ -94,7 +94,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ onSelectTemplate })
           {favoriteTemplates.map((template) => (
             <div 
               key={template.id} 
-              className={`border ${selectedTemplate === template.id ? 'border-nova-blue' : 'border-gray-100'} rounded-lg overflow-hidden cursor-pointer hover:border-nova-blue`}
+              className={`border ${selectedTemplate === template.id ? 'border-nova-blue' : 'border-gray-100'} rounded-lg overflow-hidden cursor-pointer hover:border-nova-blue transition-all ${selectedTemplate === template.id ? 'ring-2 ring-nova-blue/20' : ''}`}
               onClick={() => handleTemplateSelect(template.id)}
             >
               <div className="aspect-[4/3] relative">
@@ -103,6 +103,11 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ onSelectTemplate })
                   alt={template.title}
                   className="w-full h-full object-cover"
                 />
+                {selectedTemplate === template.id && (
+                  <div className="absolute inset-0 bg-nova-blue/10 flex items-center justify-center">
+                    <span className="bg-nova-blue text-white text-xs px-2 py-1 rounded-full">已选择</span>
+                  </div>
+                )}
               </div>
               <div className="p-2">
                 <p className="text-xs text-nova-dark-gray line-clamp-1">{template.title}</p>
