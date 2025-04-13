@@ -260,8 +260,10 @@ const HomePage: React.FC = () => {
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-nova-deep-purple via-nova-blue to-nova-hot-pink font-extrabold">
             Nova
           </span>
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-nova-dark-gray/90 to-nova-blue/90">
-            : World's first AI influencer marketing platform
+          <span className="block mt-4 text-transparent bg-clip-text bg-gradient-to-r from-nova-dark-gray/90 to-nova-blue/90 text-3xl md:text-5xl">
+            AI-Powered Content. 
+            Human-Driven Influence. 
+            Universal Opportunity.
           </span>
         </h1>
         
