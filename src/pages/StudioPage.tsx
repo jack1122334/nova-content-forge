@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -62,6 +63,17 @@ const StudioPage: React.FC = () => {
       
       const hotspots = selectedTrends.length > 0 ? selectedTrends.join("、") : "";
       
+      console.log("Current style option:", styleOption);
+      console.log("Selected template ID:", selectedTemplate);
+      console.log("Has template HTML content:", !!selectedTemplateHtml);
+      if (selectedTemplateHtml) {
+        console.log("Template HTML content length:", selectedTemplateHtml.length);
+        console.log("Template HTML content preview:", selectedTemplateHtml.substring(0, 200) + "...");
+      }
+      
+      const templateParam = styleOption === "use-template" && selectedTemplateHtml ? selectedTemplateHtml : "";
+      console.log("Final template parameter to be sent:", templateParam ? `[${templateParam.length} chars]` : "[empty]");
+      
       const payload = {
         workflow_id: "7492378369356333090",
         parameters: {
@@ -69,15 +81,15 @@ const StudioPage: React.FC = () => {
           hotspot: hotspots,
           account_info: accountInfo,
           text_style: customRequirements || "",
-          template: styleOption === "use-template" && selectedTemplateHtml ? selectedTemplateHtml : ""
+          template: templateParam
         }
       };
 
       console.log("Template selection mode:", styleOption);
       console.log("Selected template ID:", selectedTemplate);
-      console.log("Selected template HTML:", selectedTemplateHtml);
+      console.log("Selected template HTML:", selectedTemplateHtml ? `[${selectedTemplateHtml.length} chars]` : "undefined");
       console.log("Sending Coze API request with payload:", payload);
-      console.log("Template parameter being sent:", payload.parameters.template);
+      console.log("Template parameter being sent:", payload.parameters.template ? `[${payload.parameters.template.length} chars]` : "[empty string]");
 
       const response = await fetch("https://api.coze.cn/v1/workflow/run", {
         method: "POST",

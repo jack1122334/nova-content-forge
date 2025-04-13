@@ -50,6 +50,14 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ onSelectTemplate, s
         
         setFavoriteTemplates(formattedTemplates);
         console.log("Loaded templates from database:", formattedTemplates);
+        
+        // Log each template's HTML content to debug
+        formattedTemplates.forEach(template => {
+          console.log(`Template ${template.id} (${template.title}) HTML content length:`, 
+            template.html_content ? template.html_content.length : 0);
+          console.log(`Template ${template.id} HTML content preview:`, 
+            template.html_content ? template.html_content.substring(0, 100) + "..." : "NO CONTENT");
+        });
       } else {
         // Fallback to localStorage if no templates found
         fallbackToLocalStorage();
@@ -83,6 +91,14 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ onSelectTemplate, s
       
       setFavoriteTemplates(favorites);
       console.log("Loaded favorite templates from localStorage:", favorites);
+      
+      // Log each template's HTML content to debug
+      favorites.forEach((template: Template) => {
+        console.log(`Template ${template.id} (${template.title}) HTML content length:`, 
+          template.html_content ? template.html_content.length : 0);
+        console.log(`Template ${template.id} HTML content preview:`, 
+          template.html_content ? template.html_content.substring(0, 100) + "..." : "NO CONTENT");
+      });
     } catch (error) {
       console.error("Error loading from localStorage:", error);
       setFavoriteTemplates([]);
@@ -91,7 +107,14 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ onSelectTemplate, s
 
   const handleTemplateSelect = (templateId: string, htmlContent?: string) => {
     if (onSelectTemplate) {
-      console.log("Selected template:", templateId, "HTML content:", htmlContent);
+      console.log(`Selected template: ${templateId}`);
+      console.log(`HTML content available: ${!!htmlContent}`);
+      if (htmlContent) {
+        console.log(`HTML content length: ${htmlContent.length}`);
+        console.log(`HTML content preview: ${htmlContent.substring(0, 100)}...`);
+      } else {
+        console.error("No HTML content available for template:", templateId);
+      }
       onSelectTemplate(templateId, htmlContent);
     }
   };
