@@ -166,6 +166,14 @@ const StudioPage: React.FC = () => {
     console.log("Task detail description updated:", detail);
   };
   
+  // New handler for when a task changes in the TaskPanel
+  const handleTaskChange = (newTask: TaskCardProps) => {
+    setTask(newTask);
+    if (newTask.description) {
+      setTaskDetailDescription(newTask.description);
+    }
+  };
+  
   return (
     <div>
       <h1 className="text-2xl font-bold text-nova-dark-gray mb-6">创作台</h1>

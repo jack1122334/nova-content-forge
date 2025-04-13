@@ -1,7 +1,8 @@
-
 import React, { useState, useEffect } from "react";
 import { TaskCardProps } from "@/components/marketplace/TaskCard";
 import { supabase } from "@/integrations/supabase/client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2 } from "lucide-react";
 
 interface TaskPanelProps {
   initialTask?: TaskCardProps | null;
@@ -10,13 +11,56 @@ interface TaskPanelProps {
 
 const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange }) => {
   const [task, setTask] = useState<TaskCardProps | null>(null);
+  const [availableTasks, setAvailableTasks] = useState<TaskCardProps[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const fetchTasks = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('brand_tasks')
+          .select('*');
+        
+        if (error) {
+          console.error("Error fetching tasks:", error);
+          return;
+        }
+        
+        if (data && data.length > 0) {
+          const formattedTasks = data.map(task => ({
+            id: task.id,
+            brand: task.brand,
+            category: task.category || "",
+            brief: task.brief,
+            budget: task.budget || "",
+            platform: task.platform || "",
+            reward: task.reward || "",
+            type: task.type || "奖金任务",
+            progress: task.progress || 0,
+            participants: task.participants || 0,
+            description: task.description || ""
+          }));
+          
+          setAvailableTasks(formattedTasks);
+        }
+      } catch (error) {
+        console.error("Error in fetchTasks:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchTasks();
+  }, []);
   
   useEffect(() => {
     if (initialTask) {
       setTask(initialTask);
+      setSelectedTaskId(initialTask.id);
       console.log("Task set in TaskPanel:", initialTask);
       
-      // If the task doesn't have a description but has an ID, try to fetch it
       if (!initialTask.description && initialTask.id) {
         fetchTaskDescription(initialTask.id);
       }
@@ -37,7 +81,6 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange }
       }
       
       if (data && data.description) {
-        // Update the task with the description
         setTask(prevTask => prevTask ? {...prevTask, description: data.description} : null);
       }
     } catch (error) {
@@ -45,7 +88,20 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange }
     }
   };
   
-  // If no task is provided, use default
+  const handleTaskChange = (taskId: string) => {
+    setSelectedTaskId(taskId);
+    const selectedTask = availableTasks.find(t => t.id === taskId);
+    if (selectedTask) {
+      setTask(selectedTask);
+      
+      if (!selectedTask.description) {
+        fetchTaskDescription(taskId);
+      } else if (onTaskDetailChange) {
+        onTaskDetailChange(selectedTask.description);
+      }
+    }
+  };
+  
   const defaultTask = {
     id: "3",
     brand: "上海家化",
@@ -62,7 +118,6 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange }
   
   const currentTask = task || defaultTask;
   
-  // 当组件挂载或任务改变时，提供详细说明给父组件
   useEffect(() => {
     if (onTaskDetailChange && currentTask.description) {
       onTaskDetailChange(currentTask.description);
@@ -72,6 +127,32 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange }
   return (
     <div className="bg-white rounded-2xl shadow-sm p-6 h-full">
       <h3 className="text-lg font-medium text-nova-dark-gray mb-4">品牌任务</h3>
+      
+      <div className="mb-4">
+        <Select 
+          value={selectedTaskId || ""}
+          onValueChange={handleTaskChange}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="选择品牌任务" />
+          </SelectTrigger>
+          <SelectContent>
+            {loading ? (
+              <div className="flex items-center justify-center py-2">
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                <span>加载中...</span>
+              </div>
+            ) : (
+              availableTasks.map(task => (
+                <SelectItem key={task.id} value={task.id}>
+                  {task.brand} - {task.brief}
+                </SelectItem>
+              ))
+            )}
+          </SelectContent>
+        </Select>
+      </div>
+      
       <div className="p-4 border border-gray-100 rounded-xl bg-gray-50">
         <div className="mb-3">
           <h4 className="text-base font-medium text-nova-dark-gray">{currentTask.brand} - {currentTask.brief}</h4>
