@@ -54,6 +54,18 @@ type CustomDatabase = Database & {
         };
       };
     };
+    Buckets: {
+      [key: string]: {
+        Row: {
+          id: string;
+          name: string;
+          owner: string | null;
+          created_at: string | null;
+          updated_at: string | null;
+          public: boolean | null;
+        };
+      };
+    };
   };
 };
 

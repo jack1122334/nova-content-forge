@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { CameraIcon, FileUp, Plus, X, Code } from "lucide-react";
+import { CameraIcon, FileUp, Plus, X, Code, AlertTriangle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -11,6 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 const platforms = ["小红书", "抖音", "快手", "视频号", "Instagram", "youtube", "X", "reddit", "Facebook"];
 const industries = ["通用", "食品", "服装", "软件", "美妆", "日化", "电子", "汽车", "餐饮"];
@@ -44,6 +45,7 @@ const TemplateSubmitPage: React.FC = () => {
   const htmlPreviewRef = useRef<HTMLDivElement>(null);
   const [htmlRendering, setHtmlRendering] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [storageBucketExists, setStorageBucketExists] = useState<boolean | null>(null);
   const navigate = useNavigate();
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -59,6 +61,58 @@ const TemplateSubmitPage: React.FC = () => {
       autoRenderCover: false
     }
   });
+
+  useEffect(() => {
+    const checkStorageBucket = async () => {
+      try {
+        console.log("Checking if storage bucket 'template-images' exists...");
+        
+        const { data: buckets, error: bucketsError } = await supabase
+          .storage
+          .listBuckets();
+          
+        if (bucketsError) {
+          console.error("Error listing buckets:", bucketsError);
+          setUploadError(`存储服务列表获取失败: ${bucketsError.message}`);
+          setStorageBucketExists(false);
+          return;
+        }
+        
+        const templateBucket = buckets?.find(bucket => bucket.name === 'template-images');
+        
+        if (!templateBucket) {
+          console.error("Template images bucket not found in bucket list");
+          setUploadError("模板图片存储桶不存在，请联系管理员创建");
+          setStorageBucketExists(false);
+          return;
+        }
+        
+        console.log("Found template-images bucket:", templateBucket);
+        
+        const { data: files, error: filesError } = await supabase
+          .storage
+          .from('template-images')
+          .list();
+          
+        if (filesError) {
+          console.error("Error listing files in template-images bucket:", filesError);
+          setUploadError(`存储桶访问失败: ${filesError.message}`);
+          setStorageBucketExists(false);
+          return;
+        }
+        
+        console.log("Successfully listed files in template-images bucket", files);
+        setStorageBucketExists(true);
+        setUploadError(null);
+      } catch (err: any) {
+        console.error("Storage bucket check exception:", err);
+        setUploadError(`存储服务检查异常: ${err.message || '未知错误'}`);
+        setStorageBucketExists(false);
+      }
+    };
+    
+    checkStorageBucket();
+  }, []);
 
   useEffect(() => {
     if (autoRenderCover && htmlTemplateFile?.content && htmlPreviewRef.current) {
@@ -79,26 +133,12 @@ const TemplateSubmitPage: React.FC = () => {
     }
   }, [htmlTemplateFile, autoRenderCover]);
 
-  useEffect(() => {
-    const checkStorageBucket = async () => {
-      try {
-        const { data, error } = await supabase.storage.getBucket('template-images');
-        if (error) {
-          console.error("Storage bucket check error:", error);
-          setUploadError("存储服务初始化失败，请稍后再试");
-        } else {
-          console.log("Storage bucket exists:", data);
-          setUploadError(null);
-        }
-      } catch (err) {
-        console.error("Storage bucket check exception:", err);
-      }
-    };
-    
-    checkStorageBucket();
-  }, []);
-
   const handleCoverImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!storageBucketExists) {
+      toast.error("存储服务暂不可用，请稍后再试");
+      return;
+    }
+    
     setUploadError(null);
     const file = e.target.files?.[0];
     if (!file) return;
@@ -188,6 +228,11 @@ const TemplateSubmitPage: React.FC = () => {
       return;
     }
     
+    if (!storageBucketExists && !autoRenderCover) {
+      toast.error("存储服务不可用，请使用自动渲染或稍后再试");
+      return;
+    }
+    
     setIsSubmitting(true);
     setUploadError(null);
     
@@ -201,7 +246,7 @@ const TemplateSubmitPage: React.FC = () => {
 
       let coverImageUrl = "";
       
-      if (coverImage) {
+      if (coverImage && storageBucketExists) {
         const timestamp = Date.now();
         const sanitizedFilename = coverImage.name.replace(/\s+/g, '_');
         const userFolder = userId || 'anonymous';
@@ -291,11 +336,18 @@ const TemplateSubmitPage: React.FC = () => {
           </div>
           
           {uploadError && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
-              <p className="font-medium">上传错误</p>
-              <p>{uploadError}</p>
-              <p className="mt-2 text-xs">请确保存储服务正常，或稍后再试</p>
-            </div>
+            <Alert variant="destructive" className="mb-6">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>上传错误</AlertTitle>
+              <AlertDescription>
+                <p>{uploadError}</p>
+                <p className="mt-2 text-xs">
+                  {storageBucketExists === false 
+                    ? "存储服务不可用。建议选择自动渲染选项，或稍后再试" 
+                    : "请确保存储服务正常，或稍后再试"}
+                </p>
+              </AlertDescription>
+            </Alert>
           )}
           
           <Form {...form}>
@@ -464,7 +516,7 @@ const TemplateSubmitPage: React.FC = () => {
                   </label>
                 </div>
                 <div className="text-xs text-nova-gray italic mb-4">
-                  选择此选项后，将根据HTML代码渲染封面图
+                  选择此选项后，将根据HTML代码渲染封面图{!storageBucketExists ? "（推荐，因为存储服务暂不可用）" : ""}
                 </div>
                 
                 {autoRenderCover && htmlTemplateFile?.content && (
@@ -493,8 +545,14 @@ const TemplateSubmitPage: React.FC = () => {
               <div className={autoRenderCover ? 'opacity-50 pointer-events-none' : ''}>
                 <label className="block text-sm font-medium text-nova-gray mb-2">上传封面图 {!autoRenderCover && "(可选)"}</label>
                 <div 
-                  className={`border-2 border-dashed ${coverImage ? 'border-nova-blue' : 'border-gray-200'} rounded-lg p-8 text-center hover:border-nova-blue transition-colors cursor-pointer`}
-                  onClick={() => document.getElementById('coverImageInput')?.click()}
+                  className={`border-2 border-dashed ${coverImage ? 'border-nova-blue' : 'border-gray-200'} rounded-lg p-8 text-center hover:border-nova-blue transition-colors cursor-pointer ${!storageBucketExists && !autoRenderCover ? 'opacity-70' : ''}`}
+                  onClick={() => {
+                    if (!storageBucketExists && !autoRenderCover) {
+                      toast.error("存储服务暂不可用，请使用自动渲染选项");
+                      return;
+                    }
+                    document.getElementById('coverImageInput')?.click();
+                  }}
                 >
                   {coverImage ? (
                     <div className="flex flex-col items-center">
@@ -522,6 +580,11 @@ const TemplateSubmitPage: React.FC = () => {
                       </div>
                       <p className="text-sm text-nova-gray mb-2">点击或拖拽上传封面图</p>
                       <p className="text-xs text-nova-gray">支持 JPG, PNG 格式，建议尺寸 800x600 像素</p>
+                      {!storageBucketExists && !autoRenderCover && (
+                        <p className="mt-2 text-xs text-red-500 font-medium">
+                          存储服务暂不可用，请考虑使用自动渲染选项
+                        </p>
+                      )}
                     </>
                   )}
                   <input
@@ -530,13 +593,9 @@ const TemplateSubmitPage: React.FC = () => {
                     className="hidden"
                     accept="image/*"
                     onChange={handleCoverImageUpload}
+                    disabled={!storageBucketExists && !autoRenderCover}
                   />
                 </div>
-                {uploadError && (
-                  <p className="mt-2 text-xs text-red-500">
-                    注意：当前上传服务可能不可用，请选择自动渲染或稍后再试
-                  </p>
-                )}
               </div>
               
               <div>
