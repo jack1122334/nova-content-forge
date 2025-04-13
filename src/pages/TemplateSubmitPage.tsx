@@ -59,20 +59,15 @@ const TemplateSubmitPage: React.FC = () => {
     }
   });
 
-  // Effect to render HTML preview when htmlTemplateFile changes
   useEffect(() => {
     if (autoRenderCover && htmlTemplateFile?.content && htmlPreviewRef.current) {
       setHtmlRendering(true);
       
-      // Set the HTML content to the preview container
       htmlPreviewRef.current.innerHTML = htmlTemplateFile.content;
       
-      // Optional: Add a short delay to ensure rendering is complete
       setTimeout(() => {
         try {
-          // Capture the rendered HTML as an image
           if (htmlPreviewRef.current) {
-            // You can use html2canvas or similar library here if needed
             setHtmlRendering(false);
           }
         } catch (error) {
@@ -179,40 +174,40 @@ const TemplateSubmitPage: React.FC = () => {
       const userId = userData?.user?.id;
       
       if (!userId) {
-        // Anonymous mode - create a temporary ID
-        const tempId = `anonymous-${Date.now()}`;
         toast.warning("您尚未登录，模板将以匿名方式保存");
       }
 
       let coverImageUrl = "";
       
-      // Upload the cover image to Supabase Storage if we have one
       if (coverImage) {
-        const filePath = `template-covers/${Date.now()}-${coverImage.name}`;
+        const userFolder = userId || 'anonymous';
+        const filePath = `${userFolder}/${Date.now()}-${coverImage.name.replace(/\s+/g, '_')}`;
+        
+        console.log("Attempting to upload cover image to:", filePath);
+        
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('template-images')
           .upload(filePath, coverImage.file);
           
         if (uploadError) {
           console.error("Error uploading cover image:", uploadError);
-          toast.error("封面图上传失败");
+          toast.error(`封面图上传失败: ${uploadError.message || '未知错误'}`);
           setIsSubmitting(false);
           return;
         }
         
-        // Get the public URL
+        console.log("Cover image uploaded successfully:", uploadData);
+        
         const { data: urlData } = supabase.storage
           .from('template-images')
           .getPublicUrl(filePath);
           
         coverImageUrl = urlData.publicUrl;
+        console.log("Cover image public URL:", coverImageUrl);
       } else if (autoRenderCover && htmlPreviewRef.current) {
-        // For simplicity, using a placeholder URL
-        // In a real implementation, you'd convert the HTML preview to an image
         coverImageUrl = "https://images.unsplash.com/photo-1721322800607-8c38375eef04";
       }
       
-      // Insert the template into the database
       const { data: template, error } = await supabase
         .from('templates')
         .insert({
@@ -228,11 +223,12 @@ const TemplateSubmitPage: React.FC = () => {
       
       if (error) {
         console.error("Error saving template:", error);
-        toast.error("模板保存失败，请重试");
+        toast.error(`模板保存失败: ${error.message || '请重试'}`);
         setIsSubmitting(false);
         return;
       }
       
+      console.log("Template created successfully:", template);
       toast.success("模板提交成功");
       navigate('/inspiration');
       

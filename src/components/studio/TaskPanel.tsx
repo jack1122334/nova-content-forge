@@ -50,14 +50,32 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange, 
         }
         
         // Fetch all tasks from Supabase
+        console.log("Fetching tasks from Supabase...");
         const { data, error } = await supabase
           .from('brand_tasks')
           .select('*');
         
         if (error) {
           console.error("Error fetching tasks:", error);
+          setAvailableTasks([]);
+          // Set default task if we have no tasks
+          setTask(defaultTask);
+          setSelectedTaskId(defaultTask.id);
+          
+          if (onTaskDetailChange && defaultTask.description) {
+            onTaskDetailChange(defaultTask.description);
+          }
+          
+          if (onTaskChange) {
+            onTaskChange(defaultTask);
+          }
+          
+          localStorage.setItem('recentlySelectedTask', JSON.stringify(defaultTask));
+          setLoading(false);
           return;
         }
+        
+        console.log("Fetched tasks from Supabase:", data);
         
         if (data && data.length > 0) {
           const formattedTasks = data.map(task => ({
@@ -75,6 +93,7 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange, 
           }));
           
           setAvailableTasks(formattedTasks);
+          console.log("Formatted tasks:", formattedTasks);
           
           // Task selection priority: 
           // 1. initialTask from props
@@ -86,8 +105,15 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange, 
             selectedTask = initialTask;
             console.log("Using initialTask from props:", initialTask);
           } else if (recentTask) {
-            selectedTask = recentTask;
-            console.log("Using recent task from localStorage:", recentTask);
+            // Verify the recentTask still exists in our fetched tasks
+            const recentTaskExists = formattedTasks.some(t => t.id === recentTask?.id);
+            if (recentTaskExists) {
+              selectedTask = recentTask;
+              console.log("Using recent task from localStorage:", recentTask);
+            } else {
+              selectedTask = formattedTasks[0];
+              console.log("Recent task no longer exists, using first task:", selectedTask);
+            }
           } else if (formattedTasks.length > 0) {
             selectedTask = formattedTasks[0];
             console.log("Using first available task:", selectedTask);
@@ -112,9 +138,35 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange, 
             // Save to localStorage
             localStorage.setItem('recentlySelectedTask', JSON.stringify(selectedTask));
           }
+        } else {
+          console.log("No tasks found in database, using default task");
+          // No tasks found, set default
+          setTask(defaultTask);
+          setSelectedTaskId(defaultTask.id);
+          
+          if (onTaskDetailChange && defaultTask.description) {
+            onTaskDetailChange(defaultTask.description);
+          }
+          
+          if (onTaskChange) {
+            onTaskChange(defaultTask);
+          }
+          
+          localStorage.setItem('recentlySelectedTask', JSON.stringify(defaultTask));
         }
       } catch (error) {
         console.error("Error in fetchTasks:", error);
+        // Set default task on error
+        setTask(defaultTask);
+        setSelectedTaskId(defaultTask.id);
+        
+        if (onTaskDetailChange && defaultTask.description) {
+          onTaskDetailChange(defaultTask.description);
+        }
+        
+        if (onTaskChange) {
+          onTaskChange(defaultTask);
+        }
       } finally {
         setLoading(false);
       }
