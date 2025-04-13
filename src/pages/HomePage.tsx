@@ -7,6 +7,7 @@ import TemplateFilter from "@/components/home/TemplateFilter";
 import TemplateGrid from "@/components/home/TemplateGrid";
 import { TaskCardProps } from "@/components/marketplace/TaskCard";
 import { TemplateCardProps } from "@/components/home/TemplateCard";
+import { Loader2 } from "lucide-react";
 
 const mockTasks: TaskCardProps[] = [
   {
@@ -112,31 +113,46 @@ const HomePage: React.FC = () => {
     fees: [] as string[],
     types: [] as string[],
   });
+  const [sortBy, setSortBy] = useState("newest");
+  const [isLoading, setIsLoading] = useState(false);
 
   const filteredTemplates = useMemo(() => {
-    return mockTemplates.filter((template) => {
-      // Filter by platform
-      if (filters.platforms.length > 0 && !filters.platforms.includes(template.platform)) {
-        return false;
-      }
-      
-      // Filter by fee
-      if (filters.fees.length > 0) {
+    let templates = [...mockTemplates];
+    
+    // Filter by platform
+    if (filters.platforms.length > 0) {
+      templates = templates.filter((template) => {
+        return filters.platforms.includes(template.platform);
+      });
+    }
+    
+    // Filter by fee
+    if (filters.fees.length > 0) {
+      templates = templates.filter((template) => {
         const feeMatches = template.isFree 
           ? filters.fees.includes("免费") 
           : filters.fees.includes("付费");
         
-        if (!feeMatches) {
-          return false;
-        }
-      }
-      
-      // Note: We don't have industry and type data in our mock templates
-      // In a real application, we would filter by these as well
-      
-      return true;
-    });
-  }, [filters]);
+        return feeMatches;
+      });
+    }
+    
+    // Sort templates based on sortBy value
+    if (sortBy === "newest") {
+      // Sort by id as a proxy for creation date (higher id = newer)
+      templates = templates.sort((a, b) => 
+        parseInt(b.id.split('-')[1]) - parseInt(a.id.split('-')[1])
+      );
+    } else if (sortBy === "popular") {
+      // Sort by views
+      templates = templates.sort((a, b) => b.views - a.views);
+    } else if (sortBy === "recommended") {
+      // Sort by likes
+      templates = templates.sort((a, b) => b.likes - a.likes);
+    }
+    
+    return templates;
+  }, [filters, sortBy]);
 
   const handleFilterChange = (newFilters: {
     platforms: string[];
@@ -169,10 +185,65 @@ const HomePage: React.FC = () => {
         <TaskCarousel tasks={mockTasks} />
       </div>
       
-      {/* Templates Section */}
+      {/* Templates Section - Styled like Inspiration Page */}
       <div>
         <TemplateFilter onFilterChange={handleFilterChange} />
-        <TemplateGrid templates={filteredTemplates.length > 0 ? filteredTemplates : mockTemplates} />
+        
+        <div className="bg-white rounded-2xl shadow-sm p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-lg font-semibold text-nova-dark-gray">热门模板</h2>
+            <div className="flex">
+              <button 
+                onClick={() => setSortBy("newest")}
+                className={`text-sm px-4 py-2 rounded-lg mr-2 ${sortBy === "newest" ? 'bg-nova-blue text-white' : 'bg-nova-light-gray text-nova-dark-gray'}`}
+              >
+                最新
+              </button>
+              <button 
+                onClick={() => setSortBy("popular")}
+                className={`text-sm px-4 py-2 rounded-lg mr-2 ${sortBy === "popular" ? 'bg-nova-blue text-white' : 'bg-nova-light-gray text-nova-dark-gray'}`}
+              >
+                热门
+              </button>
+              <button 
+                onClick={() => setSortBy("recommended")}
+                className={`text-sm px-4 py-2 rounded-lg ${sortBy === "recommended" ? 'bg-nova-blue text-white' : 'bg-nova-light-gray text-nova-dark-gray'}`}
+              >
+                推荐
+              </button>
+            </div>
+          </div>
+          
+          {isLoading ? (
+            <div className="flex justify-center items-center py-20">
+              <Loader2 className="h-10 w-10 text-nova-blue animate-spin" />
+            </div>
+          ) : filteredTemplates.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {filteredTemplates.map((template) => (
+                <TemplateCard 
+                  key={template.id} 
+                  {...template} 
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-20">
+              <p className="text-nova-gray">未找到符合条件的模板</p>
+            </div>
+          )}
+          
+          {filteredTemplates.length > 0 && (
+            <div className="flex justify-center mt-8">
+              <button 
+                className="nova-button bg-white text-nova-blue border border-nova-blue hover:bg-blue-50"
+                onClick={() => {}}
+              >
+                加载更多
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
