@@ -11,9 +11,10 @@ const SearchBox: React.FC = () => {
       </div>
       <Input
         type="text"
-        className="w-full pl-12 py-6 text-lg rounded-full border-2 border-gray-200 hover:border-nova-blue focus:border-nova-blue transition-colors shadow-md"
+        className="w-full pl-12 py-6 text-lg rounded-full border-2 border-gray-200 bg-white/80 backdrop-blur-sm hover:border-nova-blue focus:border-nova-blue transition-all shadow-lg hover:shadow-nova-blue/20 hover:translate-y-[-2px]"
         placeholder="搜索模板、品牌任务或灵感..."
       />
+      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-nova-blue/10 to-nova-light-blue/10 opacity-50 blur-xl -z-10"></div>
     </div>
   );
 };

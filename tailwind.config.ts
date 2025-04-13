@@ -69,6 +69,9 @@ export default {
           gray: "#8E8E93",
           "light-gray": "#F5F5F7",
           "dark-gray": "#333333",
+          "accent-1": "#00CCBB",
+          "accent-2": "#FF9500",
+          "accent-3": "#FF2D55",
         },
       },
       borderRadius: {
@@ -93,12 +96,17 @@ export default {
           "0%": { transform: "translateX(-10px)", opacity: "0" },
           "100%": { transform: "translateX(0)", opacity: "1" },
         },
+        "float": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.3s ease-out",
         "slide-in": "slide-in 0.3s ease-out",
+        "float": "float 6s ease-in-out infinite",
       },
       fontFamily: {
         sans: [
@@ -109,6 +117,9 @@ export default {
           "Helvetica",
           "sans-serif",
         ],
+      },
+      backgroundImage: {
+        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
       },
     },
   },

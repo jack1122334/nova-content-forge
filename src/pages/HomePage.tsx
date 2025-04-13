@@ -254,48 +254,53 @@ const HomePage: React.FC = () => {
   return (
     <div className="space-y-16">
       {/* Hero Section with Google-like Search */}
-      <div className="flex flex-col items-center justify-center py-16 space-y-8">
-        <h1 className="text-4xl md:text-5xl font-bold text-center text-nova-dark-gray bg-clip-text">
-          <span className="text-nova-blue">Nova</span>: World's first AI influencer marketing platform
+      <div className="relative flex flex-col items-center justify-center py-24 space-y-10 overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-r from-nova-blue/20 to-nova-light-blue/20 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 animate-pulse"></div>
+        <div className="absolute bottom-0 right-0 w-80 h-80 bg-gradient-to-l from-nova-blue/10 to-nova-light-blue/10 rounded-full blur-3xl translate-x-1/3 translate-y-1/3 animate-pulse animation-delay-2000"></div>
+        
+        <h1 className="text-4xl md:text-6xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-nova-dark-gray to-nova-blue leading-tight">
+          <span className="text-nova-blue font-extrabold">Nova</span>: World's first AI influencer marketing platform
         </h1>
         
-        <div className="w-full max-w-2xl mx-auto">
+        <div className="w-full max-w-2xl mx-auto transform transition-all duration-500 hover:scale-[1.02]">
           <SearchBox />
         </div>
         
-        <div className="w-full max-w-4xl">
+        <div className="w-full max-w-4xl animate-fade-in">
           <Stats />
         </div>
       </div>
       
       {/* Task Carousel Section */}
-      <div>
+      <div className="relative px-4 py-10 rounded-3xl bg-gradient-to-r from-white to-nova-light-gray/30 backdrop-blur-sm border border-white shadow-xl">
+        <div className="absolute inset-0 bg-white/50 backdrop-blur-sm rounded-3xl -z-10"></div>
         <TaskCarousel tasks={mockTasks} />
       </div>
       
       {/* Templates Section - Copied from InspirationPage */}
-      <div>
+      <div className="relative">
         <TemplateFilter onFilterChange={handleFilterChange} />
         
-        <div className="bg-white rounded-2xl shadow-sm p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg font-semibold text-nova-dark-gray">热门灵感</h2>
-            <div className="flex">
+        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl p-8 border border-gray-100/50">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-xl font-bold text-nova-dark-gray bg-clip-text text-transparent bg-gradient-to-r from-nova-dark-gray to-nova-blue">热门灵感</h2>
+            <div className="flex space-x-2">
               <button 
                 onClick={() => setSortBy("newest")}
-                className={`text-sm px-4 py-2 rounded-lg mr-2 ${sortBy === "newest" ? 'bg-nova-blue text-white' : 'bg-nova-light-gray text-nova-dark-gray'}`}
+                className={`text-sm px-5 py-2.5 rounded-full transform transition-all duration-300 ${sortBy === "newest" ? 'bg-gradient-to-r from-nova-blue to-nova-light-blue text-white shadow-lg' : 'bg-nova-light-gray text-nova-dark-gray hover:scale-105'}`}
               >
                 最新
               </button>
               <button 
                 onClick={() => setSortBy("popular")}
-                className={`text-sm px-4 py-2 rounded-lg mr-2 ${sortBy === "popular" ? 'bg-nova-blue text-white' : 'bg-nova-light-gray text-nova-dark-gray'}`}
+                className={`text-sm px-5 py-2.5 rounded-full transform transition-all duration-300 ${sortBy === "popular" ? 'bg-gradient-to-r from-nova-blue to-nova-light-blue text-white shadow-lg' : 'bg-nova-light-gray text-nova-dark-gray hover:scale-105'}`}
               >
                 热门
               </button>
               <button 
                 onClick={() => setSortBy("recommended")}
-                className={`text-sm px-4 py-2 rounded-lg ${sortBy === "recommended" ? 'bg-nova-blue text-white' : 'bg-nova-light-gray text-nova-dark-gray'}`}
+                className={`text-sm px-5 py-2.5 rounded-full transform transition-all duration-300 ${sortBy === "recommended" ? 'bg-gradient-to-r from-nova-blue to-nova-light-blue text-white shadow-lg' : 'bg-nova-light-gray text-nova-dark-gray hover:scale-105'}`}
               >
                 推荐
               </button>
@@ -307,7 +312,7 @@ const HomePage: React.FC = () => {
               <Loader2 className="h-10 w-10 text-nova-blue animate-spin" />
             </div>
           ) : filteredTemplates.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
               {filteredTemplates.map(template => (
                 <TemplateCard 
                   key={template.id} 
@@ -324,9 +329,9 @@ const HomePage: React.FC = () => {
           )}
           
           {filteredTemplates.length > 0 && (
-            <div className="flex justify-center mt-8">
+            <div className="flex justify-center mt-10">
               <button 
-                className="nova-button bg-white text-nova-blue border border-nova-blue hover:bg-blue-50"
+                className="px-8 py-3 rounded-full bg-white text-nova-blue border-2 border-nova-blue hover:bg-blue-50 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
                 onClick={loadMore}
               >
                 加载更多
