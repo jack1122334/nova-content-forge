@@ -43,6 +43,16 @@ type CustomDatabase = Database & {
           is_public: boolean | null;
         };
       };
+      trending_topics: {
+        Row: {
+          id: string;
+          title: string;
+          hot: number | null;
+          match: number | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+      };
     };
   };
 };

@@ -43,6 +43,7 @@ const TemplateSubmitPage: React.FC = () => {
   const [autoRenderCover, setAutoRenderCover] = useState(false);
   const htmlPreviewRef = useRef<HTMLDivElement>(null);
   const [htmlRendering, setHtmlRendering] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const navigate = useNavigate();
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -78,7 +79,27 @@ const TemplateSubmitPage: React.FC = () => {
     }
   }, [htmlTemplateFile, autoRenderCover]);
 
+  useEffect(() => {
+    const checkStorageBucket = async () => {
+      try {
+        const { data, error } = await supabase.storage.getBucket('template-images');
+        if (error) {
+          console.error("Storage bucket check error:", error);
+          setUploadError("存储服务初始化失败，请稍后再试");
+        } else {
+          console.log("Storage bucket exists:", data);
+          setUploadError(null);
+        }
+      } catch (err) {
+        console.error("Storage bucket check exception:", err);
+      }
+    };
+    
+    checkStorageBucket();
+  }, []);
+
   const handleCoverImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUploadError(null);
     const file = e.target.files?.[0];
     if (!file) return;
     
@@ -168,42 +189,57 @@ const TemplateSubmitPage: React.FC = () => {
     }
     
     setIsSubmitting(true);
+    setUploadError(null);
     
     try {
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData?.user?.id;
       
       if (!userId) {
-        toast.warning("您尚未登录，模板将以匿名方式保存");
+        console.log("User not logged in, using anonymous upload");
       }
 
       let coverImageUrl = "";
       
       if (coverImage) {
+        const timestamp = Date.now();
+        const sanitizedFilename = coverImage.name.replace(/\s+/g, '_');
         const userFolder = userId || 'anonymous';
-        const filePath = `${userFolder}/${Date.now()}-${coverImage.name.replace(/\s+/g, '_')}`;
+        const filePath = `${userFolder}/${timestamp}-${sanitizedFilename}`;
         
         console.log("Attempting to upload cover image to:", filePath);
         
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('template-images')
-          .upload(filePath, coverImage.file);
+        try {
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('template-images')
+            .upload(filePath, coverImage.file, {
+              cacheControl: '3600',
+              upsert: false
+            });
+            
+          if (uploadError) {
+            console.error("Error uploading cover image:", uploadError);
+            setUploadError(`封面图上传失败: ${uploadError.message || '未知错误'}`);
+            toast.error(`封面图上传失败: ${uploadError.message || '未知错误'}`);
+            setIsSubmitting(false);
+            return;
+          }
           
-        if (uploadError) {
-          console.error("Error uploading cover image:", uploadError);
-          toast.error(`封面图上传失败: ${uploadError.message || '未知错误'}`);
+          console.log("Cover image uploaded successfully:", uploadData);
+          
+          const { data: urlData } = supabase.storage
+            .from('template-images')
+            .getPublicUrl(filePath);
+            
+          coverImageUrl = urlData.publicUrl;
+          console.log("Cover image public URL:", coverImageUrl);
+        } catch (err: any) {
+          console.error("Exception during cover image upload:", err);
+          setUploadError(`上传过程中发生错误: ${err.message || '未知错误'}`);
+          toast.error(`上传过程中发生错误: ${err.message || '未知错误'}`);
           setIsSubmitting(false);
           return;
         }
-        
-        console.log("Cover image uploaded successfully:", uploadData);
-        
-        const { data: urlData } = supabase.storage
-          .from('template-images')
-          .getPublicUrl(filePath);
-          
-        coverImageUrl = urlData.publicUrl;
-        console.log("Cover image public URL:", coverImageUrl);
       } else if (autoRenderCover && htmlPreviewRef.current) {
         coverImageUrl = "https://images.unsplash.com/photo-1721322800607-8c38375eef04";
       }
@@ -232,9 +268,10 @@ const TemplateSubmitPage: React.FC = () => {
       toast.success("模板提交成功");
       navigate('/inspiration');
       
-    } catch (error) {
+    } catch (error: any) {
       console.error("Template submission error:", error);
-      toast.error(error instanceof Error ? error.message : "模板提交失败，请重试");
+      toast.error(error.message || "模板提交失败，请重试");
+      setIsSubmitting(false);
     } finally {
       setIsSubmitting(false);
     }
@@ -252,6 +289,14 @@ const TemplateSubmitPage: React.FC = () => {
               您可以上传自己设计的内容模板，获得认可后可以设置付费下载，为您带来额外收益
             </p>
           </div>
+          
+          {uploadError && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+              <p className="font-medium">上传错误</p>
+              <p>{uploadError}</p>
+              <p className="mt-2 text-xs">请确保存储服务正常，或稍后再试</p>
+            </div>
+          )}
           
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -487,6 +532,11 @@ const TemplateSubmitPage: React.FC = () => {
                     onChange={handleCoverImageUpload}
                   />
                 </div>
+                {uploadError && (
+                  <p className="mt-2 text-xs text-red-500">
+                    注意：当前上传服务可能不可用，请选择自动渲染或稍后再试
+                  </p>
+                )}
               </div>
               
               <div>
