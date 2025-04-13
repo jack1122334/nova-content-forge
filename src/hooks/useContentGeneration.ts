@@ -54,7 +54,7 @@ export const useContentGeneration = () => {
       }
       
       // Get selected trends
-      const hotspots = selectedTrends.length > 0 ? selectedTrends.join("、") : "";
+      const hotspots = selectedTrends.length > 0 ? selectedTrends.join("、") : "无热点";
       
       // Prepare template parameters - only send when explicitly using template
       let templateParams = {};
@@ -83,14 +83,18 @@ export const useContentGeneration = () => {
       // Log complete template info
       console.log("Template parameters:", templateParams);
 
-      // Prepare request payload
+      // Prepare request payload with all required parameters
+      // Make sure to provide default values for required fields
       const payload = {
         workflow_id: "7492378369356333090",
         parameters: {
-          brand_brief: brandBrief,
-          hotspot: hotspots,
-          account_info: accountInfo,
-          text_style: customRequirements || "",
+          brand_brief: brandBrief || "无品牌任务",
+          hotspot: hotspots || "无热点",
+          account_info: accountInfo || "无账户信息",
+          text_style: customRequirements || "通用风格",
+          // Adding default image_url in case it's a required parameter
+          image_url: "https://placeholder.com/image.jpg",
+          // Add any other potentially required fields with defaults
           ...templateParams
         }
       };
@@ -149,6 +153,13 @@ export const useContentGeneration = () => {
 
   const handleGenerate = async (options: ContentGenerationOptions) => {
     setGenerating(true);
+    
+    // Additional validation before making the API call
+    if (!options.task && !options.taskDetailDescription) {
+      toast.error("请先选择或填写任务详情");
+      setGenerating(false);
+      return;
+    }
     
     // Validate template selection when using template option
     if (options.styleOption === "use-template" && !options.selectedTemplate) {
