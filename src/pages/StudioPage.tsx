@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -24,6 +25,7 @@ const StudioPage: React.FC = () => {
     text: string;
   } | null>(null);
   const [task, setTask] = useState<TaskCardProps | null>(null);
+  const [taskDetailDescription, setTaskDetailDescription] = useState("");
   const [apiError, setApiError] = useState<string | null>(null);
   
   useEffect(() => {
@@ -43,8 +45,12 @@ const StudioPage: React.FC = () => {
       const accountInfoElement = document.querySelector('[data-info="account-info"]');
       const accountInfo = accountInfoElement?.textContent || "";
       
-      // Get brand brief info
-      const brandBrief = task ? `${task.brand} - ${task.brief}` : "无品牌任务";
+      // Get brand brief info with detailed description
+      const brandBrief = task 
+        ? `${task.brand} - ${task.brief}${taskDetailDescription ? `: ${taskDetailDescription}` : ""}`
+        : "无品牌任务";
+      
+      console.log("Sending brand brief to API:", brandBrief);
       
       // Get selected trends
       const hotspots = selectedTrends.length > 0 ? selectedTrends.join("、") : "";
@@ -140,12 +146,17 @@ const StudioPage: React.FC = () => {
     console.log("Selected template updated:", templateId);
   };
   
+  const handleTaskDetailChange = (detail: string) => {
+    setTaskDetailDescription(detail);
+    console.log("Task detail description updated:", detail);
+  };
+  
   return (
     <div>
       <h1 className="text-2xl font-bold text-nova-dark-gray mb-6">创作台</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <TaskPanel initialTask={task} />
+        <TaskPanel initialTask={task} onTaskDetailChange={handleTaskDetailChange} />
         <TrendingPanel onSelectTrends={handleTrendSelect} />
         <AccountPanel />
       </div>

@@ -4,9 +4,10 @@ import { TaskCardProps } from "@/components/marketplace/TaskCard";
 
 interface TaskPanelProps {
   initialTask?: TaskCardProps | null;
+  onTaskDetailChange?: (taskDetail: string) => void;
 }
 
-const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask }) => {
+const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange }) => {
   const [task, setTask] = useState<TaskCardProps | null>(null);
   
   useEffect(() => {
@@ -32,6 +33,16 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask }) => {
   
   const currentTask = task || defaultTask;
   
+  // 任务详细说明
+  const taskDetailDescription = "通过真实体验分享，展示产品的滋润效果和使用感受。重点突出产品快速吸收、不粘腻的特点，以及独特的香氛体验。";
+  
+  // 当组件挂载或任务改变时，提供详细说明给父组件
+  useEffect(() => {
+    if (onTaskDetailChange) {
+      onTaskDetailChange(taskDetailDescription);
+    }
+  }, [task, onTaskDetailChange]);
+  
   return (
     <div className="bg-white rounded-2xl shadow-sm p-6 h-full">
       <h3 className="text-lg font-medium text-nova-dark-gray mb-4">品牌任务</h3>
@@ -41,8 +52,8 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask }) => {
           <p className="text-xs text-nova-gray">品类: {currentTask.category}</p>
         </div>
         <div className="space-y-2 mb-4">
-          <p className="text-sm text-nova-dark-gray">
-            通过真实体验分享，展示产品的滋润效果和使用感受。重点突出产品快速吸收、不粘腻的特点，以及独特的香氛体验。
+          <p className="text-sm text-nova-dark-gray" data-task-detail="true">
+            {taskDetailDescription}
           </p>
         </div>
         <div className="flex justify-between text-sm">
