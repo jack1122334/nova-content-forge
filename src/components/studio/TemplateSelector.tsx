@@ -27,6 +27,44 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ onSelectTemplate, s
   const fetchFavoriteTemplates = async () => {
     setIsLoading(true);
     try {
+      // First, try to get data from Supabase
+      const { data: templates, error } = await supabase
+        .from('templates')
+        .select('id, title, image_url, content');
+      
+      if (error) {
+        console.error("Error fetching templates from Supabase:", error);
+        // Fallback to localStorage
+        fallbackToLocalStorage();
+        return;
+      }
+      
+      if (templates && templates.length > 0) {
+        // Format the templates for the component
+        const formattedTemplates = templates.map(template => ({
+          id: template.id,
+          title: template.title,
+          image: template.image_url,
+          html_content: template.content
+        }));
+        
+        setFavoriteTemplates(formattedTemplates);
+        console.log("Loaded templates from database:", formattedTemplates);
+      } else {
+        // Fallback to localStorage if no templates found
+        fallbackToLocalStorage();
+      }
+    } catch (error) {
+      console.error("Error in fetchFavoriteTemplates:", error);
+      toast.error("无法加载收藏的模板");
+      fallbackToLocalStorage();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const fallbackToLocalStorage = () => {
+    try {
       // Get templates from localStorage
       const allTemplates = JSON.parse(localStorage.getItem('templates') || '[]');
       
@@ -44,15 +82,10 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ onSelectTemplate, s
         }));
       
       setFavoriteTemplates(favorites);
-      
-      console.log("Loaded favorite templates with HTML content:", favorites);
-      
+      console.log("Loaded favorite templates from localStorage:", favorites);
     } catch (error) {
-      console.error("Error fetching favorite templates:", error);
-      toast.error("无法加载收藏的模板");
+      console.error("Error loading from localStorage:", error);
       setFavoriteTemplates([]);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -64,7 +97,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ onSelectTemplate, s
   };
   
   const viewAllTemplates = () => {
-    // Navigate to inspiration page or show modal with all templates
+    // Navigate to inspiration page
     window.location.href = '/inspiration';
   };
 

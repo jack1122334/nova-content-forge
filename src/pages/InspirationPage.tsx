@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import TemplateFilter from "@/components/home/TemplateFilter";
 import TemplateCard from "@/components/home/TemplateCard";
@@ -37,29 +36,29 @@ const InspirationPage: React.FC = () => {
   const fetchTemplates = async () => {
     setIsLoading(true);
     try {
-      const savedTemplates = JSON.parse(localStorage.getItem('templates') || '[]');
+      const { data: supabaseTemplates, error } = await supabase
+        .from('templates')
+        .select('*')
+        .order('created_at', { ascending: false });
       
-      if (savedTemplates.length > 0) {
-        // Boost the views and likes numbers to make templates appear popular
-        const formattedTemplates = savedTemplates.map((template: any) => {
-          // Generate random but high numbers for views and likes
-          const enhancedViews = Math.floor(Math.random() * 5000) + 3000; // 3000-8000 range
-          const enhancedLikes = Math.floor(Math.random() * 1000) + 500;  // 500-1500 range
-          
-          return {
-            id: template.id,
-            title: template.title,
-            image: template.image,
-            html_content: template.html_content || "",
-            views: enhancedViews,
-            likes: enhancedLikes,
-            isFree: template.isFree !== undefined ? template.isFree : true,
-            platform: template.platform || template.platforms?.[0] || "通用",
-            created_at: template.created_at || new Date().toISOString()
-          };
-        });
+      if (error) {
+        throw error;
+      }
+      
+      if (supabaseTemplates && supabaseTemplates.length > 0) {
+        const formattedTemplates = supabaseTemplates.map(template => ({
+          id: template.id,
+          title: template.title || '无标题模板',
+          image: template.image_url,
+          html_content: template.content || "",
+          views: Math.floor(Math.random() * 5000) + 3000,
+          likes: Math.floor(Math.random() * 1000) + 500,
+          isFree: true,
+          platform: "通用",
+          created_at: template.created_at
+        }));
         
-        console.log("Loaded templates with HTML content:", 
+        console.log("Loaded templates from database:", 
                     formattedTemplates.map(t => ({
                       id: t.id, 
                       title: t.title, 
@@ -69,8 +68,32 @@ const InspirationPage: React.FC = () => {
         setTemplates(formattedTemplates);
         setFilteredTemplates(formattedTemplates);
       } else {
-        setTemplates([]);
-        setFilteredTemplates([]);
+        const savedTemplates = JSON.parse(localStorage.getItem('templates') || '[]');
+        
+        if (savedTemplates.length > 0) {
+          const formattedTemplates = savedTemplates.map((template: any) => {
+            const enhancedViews = Math.floor(Math.random() * 5000) + 3000;
+            const enhancedLikes = Math.floor(Math.random() * 1000) + 500;
+            
+            return {
+              id: template.id,
+              title: template.title,
+              image: template.image,
+              html_content: template.html_content || "",
+              views: enhancedViews,
+              likes: enhancedLikes,
+              isFree: template.isFree !== undefined ? template.isFree : true,
+              platform: template.platform || template.platforms?.[0] || "通用",
+              created_at: template.created_at || new Date().toISOString()
+            };
+          });
+          
+          setTemplates(formattedTemplates);
+          setFilteredTemplates(formattedTemplates);
+        } else {
+          setTemplates([]);
+          setFilteredTemplates([]);
+        }
       }
       
     } catch (error) {
@@ -91,30 +114,6 @@ const InspirationPage: React.FC = () => {
     } catch (error) {
       console.error("Error fetching user favorites:", error);
     }
-  };
-
-  const handleFilterChange = (filters: {
-    platforms: string[];
-    industries: string[];
-    fees: string[];
-    types: string[];
-  }) => {
-    let filtered = [...templates];
-    
-    if (filters.platforms.length > 0) {
-      filtered = filtered.filter(template => 
-        filters.platforms.some(p => template.platform.includes(p))
-      );
-    }
-    
-    if (filters.fees.length > 0) {
-      filtered = filtered.filter(template => 
-        (filters.fees.includes('free') && template.isFree) || 
-        (filters.fees.includes('paid') && !template.isFree)
-      );
-    }
-    
-    setFilteredTemplates(filtered);
   };
 
   const handleToggleFavorite = async (id: string) => {
@@ -145,6 +144,30 @@ const InspirationPage: React.FC = () => {
       console.error("Error toggling favorite:", error);
       toast.error("收藏操作失败，请重试");
     }
+  };
+
+  const handleFilterChange = (filters: {
+    platforms: string[];
+    industries: string[];
+    fees: string[];
+    types: string[];
+  }) => {
+    let filtered = [...templates];
+    
+    if (filters.platforms.length > 0) {
+      filtered = filtered.filter(template => 
+        filters.platforms.some(p => template.platform.includes(p))
+      );
+    }
+    
+    if (filters.fees.length > 0) {
+      filtered = filtered.filter(template => 
+        (filters.fees.includes('free') && template.isFree) || 
+        (filters.fees.includes('paid') && !template.isFree)
+      );
+    }
+    
+    setFilteredTemplates(filtered);
   };
 
   const loadMore = async () => {

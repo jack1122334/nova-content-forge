@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { CameraIcon, FileUp, Plus, X, Code } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -177,53 +176,64 @@ const TemplateSubmitPage: React.FC = () => {
     
     try {
       const { data: userData } = await supabase.auth.getUser();
-      const userId = userData?.user?.id || `anonymous-${Date.now()}`;
+      const userId = userData?.user?.id;
+      
+      if (!userId) {
+        // Anonymous mode - create a temporary ID
+        const tempId = `anonymous-${Date.now()}`;
+        toast.warning("您尚未登录，模板将以匿名方式保存");
+      }
 
       let coverImageUrl = "";
       
+      // Upload the cover image to Supabase Storage if we have one
       if (coverImage) {
-        coverImageUrl = coverImage.preview || "";
+        const filePath = `template-covers/${Date.now()}-${coverImage.name}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('template-images')
+          .upload(filePath, coverImage.file);
+          
+        if (uploadError) {
+          console.error("Error uploading cover image:", uploadError);
+          toast.error("封面图上传失败");
+          setIsSubmitting(false);
+          return;
+        }
+        
+        // Get the public URL
+        const { data: urlData } = supabase.storage
+          .from('template-images')
+          .getPublicUrl(filePath);
+          
+        coverImageUrl = urlData.publicUrl;
       } else if (autoRenderCover && htmlPreviewRef.current) {
-        // Use the HTML preview as the cover image
-        // For simplicity, we're using a placeholder. In a real scenario, you'd convert the HTML to an image
+        // For simplicity, using a placeholder URL
+        // In a real implementation, you'd convert the HTML preview to an image
         coverImageUrl = "https://images.unsplash.com/photo-1721322800607-8c38375eef04";
       }
       
-      const templateData = {
-        id: `temp-${Date.now()}`,
-        title: data.title,
-        description: data.description || "",
-        image: coverImageUrl,
-        platforms: data.platforms,
-        industries: data.industries,
-        type: data.templateType,
-        isFree: data.pricing === "free",
-        price: data.pricing === "paid" ? parseFloat(data.price || "0") : 0,
-        has_html_template: !!htmlTemplateFile,
-        html_content: htmlTemplateFile?.content || "",
-        auto_render_cover: data.autoRenderCover,
-        user_id: userId,
-        status: "approved",
-        views: 0,
-        likes: 0,
-        created_at: new Date().toISOString(),
-        platform: data.platforms[0] || "通用"
-      };
+      // Insert the template into the database
+      const { data: template, error } = await supabase
+        .from('templates')
+        .insert({
+          title: data.title,
+          description: data.description || "",
+          image_url: coverImageUrl,
+          content: htmlTemplateFile?.content || "",
+          user_id: userId,
+          is_public: true
+        })
+        .select()
+        .single();
       
-      console.log("Saving template with HTML content:", templateData.title, 
-                  templateData.html_content ? templateData.html_content.substring(0, 100) + "..." : "No HTML");
-      
-      const existingTemplates = JSON.parse(localStorage.getItem('templates') || '[]');
-      localStorage.setItem('templates', JSON.stringify([...existingTemplates, templateData]));
-      
-      // Add to favorites automatically
-      const existingFavorites = JSON.parse(localStorage.getItem('favoriteTemplates') || '[]');
-      if (!existingFavorites.includes(templateData.id)) {
-        localStorage.setItem('favoriteTemplates', JSON.stringify([...existingFavorites, templateData.id]));
+      if (error) {
+        console.error("Error saving template:", error);
+        toast.error("模板保存失败，请重试");
+        setIsSubmitting(false);
+        return;
       }
       
       toast.success("模板提交成功");
-      
       navigate('/inspiration');
       
     } catch (error) {
