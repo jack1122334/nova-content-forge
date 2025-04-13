@@ -21,6 +21,9 @@ const TaskDetail: React.FC<TaskDetailProps> = ({ task, onClose }) => {
   const navigate = useNavigate();
   
   const handleParticipate = () => {
+    // Store the selected task in localStorage before navigating
+    localStorage.setItem('recentlySelectedTask', JSON.stringify(task));
+    
     navigate('/studio', { state: { selectedTask: task } });
     onClose();
   };

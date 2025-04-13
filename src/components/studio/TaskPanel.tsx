@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { TaskCardProps } from "@/components/marketplace/TaskCard";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +20,20 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange }
     const fetchTasks = async () => {
       setLoading(true);
       try {
+        // First check if we have a recently selected task in localStorage
+        const recentTaskJson = localStorage.getItem('recentlySelectedTask');
+        let recentTask: TaskCardProps | null = null;
+        
+        if (recentTaskJson) {
+          try {
+            recentTask = JSON.parse(recentTaskJson);
+            console.log("Found recently selected task in localStorage:", recentTask);
+          } catch (e) {
+            console.error("Error parsing recent task from localStorage:", e);
+          }
+        }
+        
+        // Fetch all tasks from Supabase
         const { data, error } = await supabase
           .from('brand_tasks')
           .select('*');
@@ -44,6 +59,16 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange }
           }));
           
           setAvailableTasks(formattedTasks);
+          
+          // If we have a recent task and it's not already set as initialTask,
+          // prioritize it over initialTask
+          if (recentTask && (!initialTask || recentTask.id !== initialTask.id)) {
+            setTask(recentTask);
+            setSelectedTaskId(recentTask.id);
+            if (onTaskDetailChange && recentTask.description) {
+              onTaskDetailChange(recentTask.description);
+            }
+          }
         }
       } catch (error) {
         console.error("Error in fetchTasks:", error);
@@ -53,13 +78,16 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange }
     };
     
     fetchTasks();
-  }, []);
+  }, [initialTask, onTaskDetailChange]);
   
   useEffect(() => {
     if (initialTask) {
       setTask(initialTask);
       setSelectedTaskId(initialTask.id);
       console.log("Task set in TaskPanel:", initialTask);
+      
+      // Save this task as the recently selected task
+      localStorage.setItem('recentlySelectedTask', JSON.stringify(initialTask));
       
       if (!initialTask.description && initialTask.id) {
         fetchTaskDescription(initialTask.id);
@@ -81,7 +109,20 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange }
       }
       
       if (data && data.description) {
-        setTask(prevTask => prevTask ? {...prevTask, description: data.description} : null);
+        setTask(prevTask => {
+          const updatedTask = prevTask ? {...prevTask, description: data.description} : null;
+          
+          // Also update the recently selected task in localStorage with the description
+          if (updatedTask) {
+            localStorage.setItem('recentlySelectedTask', JSON.stringify(updatedTask));
+          }
+          
+          return updatedTask;
+        });
+        
+        if (onTaskDetailChange) {
+          onTaskDetailChange(data.description);
+        }
       }
     } catch (error) {
       console.error("Error in fetchTaskDescription:", error);
@@ -93,6 +134,9 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange }
     const selectedTask = availableTasks.find(t => t.id === taskId);
     if (selectedTask) {
       setTask(selectedTask);
+      
+      // Save this task as the recently selected task
+      localStorage.setItem('recentlySelectedTask', JSON.stringify(selectedTask));
       
       if (!selectedTask.description) {
         fetchTaskDescription(taskId);
