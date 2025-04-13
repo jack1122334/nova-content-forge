@@ -278,6 +278,10 @@ const HomePage: React.FC = () => {
         </div>
       </div>
       
+      <div className="relative px-6 py-8 rounded-3xl backdrop-blur-lg bg-white/20 border border-white/30 overflow-hidden shadow-xl">
+        <TaskCarousel tasks={mockTasks} />
+      </div>
+      
       <div className="relative">
         <TemplateFilter onFilterChange={handleFilterChange} />
         
