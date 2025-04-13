@@ -43,30 +43,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ onSelectTemplate, s
           html_content: template.html_content
         }));
       
-      if (favorites.length > 0) {
-        setFavoriteTemplates(favorites);
-      } else {
-        // Add the specific templates requested
-        const defaultTemplates = [
-          {
-            id: "1",
-            title: "小红书红白模板",
-            image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300&h=400&auto=format&fit=crop",
-            html_content: "<div style='color: red; background-color: white; padding: 20px; font-family: sans-serif;'>小红书红白模板内容</div>"
-          },
-          {
-            id: "2",
-            title: "小红书主题大字",
-            image: "https://images.unsplash.com/photo-1581299894341-367e6517e592?w=300&h=400&auto=format&fit=crop",
-            html_content: "<div style='font-size: 24px; font-weight: bold; text-align: center; padding: 20px; font-family: sans-serif;'>小红书主题大字内容</div>"
-          }
-        ];
-        setFavoriteTemplates(defaultTemplates);
-        
-        // Save these templates to localStorage for future use
-        localStorage.setItem('templates', JSON.stringify(defaultTemplates));
-        localStorage.setItem('favoriteTemplates', JSON.stringify(["1", "2"]));
-      }
+      setFavoriteTemplates(favorites);
       
       console.log("Loaded favorite templates with HTML content:", favorites);
       

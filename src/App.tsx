@@ -19,6 +19,10 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+// Clear templates from localStorage
+localStorage.removeItem('templates');
+localStorage.removeItem('favoriteTemplates');
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
