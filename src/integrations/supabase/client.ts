@@ -145,3 +145,34 @@ export const ensureStorageBucket = async (bucketName: string): Promise<boolean> 
     return false;
   }
 };
+
+// Helper function to handle template operations
+export const saveTemplate = async (templateData: {
+  title: string;
+  description?: string;
+  image_url?: string;
+  content?: string;
+  user_id?: string;
+  is_public?: boolean;
+}): Promise<{ data: any; error: any }> => {
+  try {
+    console.log("Saving template with data:", templateData);
+    
+    const { data, error } = await supabase
+      .from('templates')
+      .insert(templateData)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error("Error saving template:", error);
+      return { data: null, error };
+    }
+    
+    console.log("Template saved successfully:", data);
+    return { data, error: null };
+  } catch (err) {
+    console.error("Exception saving template:", err);
+    return { data: null, error: err };
+  }
+};
