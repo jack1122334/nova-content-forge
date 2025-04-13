@@ -1,5 +1,6 @@
+
 import React, { useState, useRef, useEffect } from "react";
-import { CameraIcon, FileUp, Plus, X, Code, AlertTriangle } from "lucide-react";
+import { CameraIcon, FileUp, Plus, X, Code, AlertTriangle, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -9,9 +10,10 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
-import { supabase, checkStorageBucket } from "@/integrations/supabase/client";
+import { supabase, checkStorageBucket, ensureStorageBucket } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
 const platforms = ["小红书", "抖音", "快手", "视频号", "Instagram", "youtube", "X", "reddit", "Facebook"];
 const industries = ["通用", "食品", "服装", "软件", "美妆", "日化", "电子", "汽车", "餐饮"];
@@ -49,6 +51,7 @@ const TemplateSubmitPage: React.FC = () => {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [storageBucketExists, setStorageBucketExists] = useState<boolean | null>(null);
   const [storageChecking, setStorageChecking] = useState(true);
+  const [isCreatingBucket, setIsCreatingBucket] = useState(false);
   const navigate = useNavigate();
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -66,57 +69,58 @@ const TemplateSubmitPage: React.FC = () => {
   });
 
   useEffect(() => {
-    const verifyStorageBucket = async () => {
-      try {
-        setStorageChecking(true);
-        console.log(`Checking if storage bucket '${BUCKET_NAME}' exists...`);
-        
-        const bucketExists = await checkStorageBucket(BUCKET_NAME);
-        
-        if (!bucketExists) {
-          console.error(`${BUCKET_NAME} bucket not found or not accessible`);
-          setUploadError(`模板图片存储桶不存在，请联系管理员创建`);
-          setStorageBucketExists(false);
-          setStorageChecking(false);
-          return;
-        }
-        
-        console.log(`Successfully verified '${BUCKET_NAME}' bucket exists`);
-        
-        // Check if we can actually list files in the bucket
-        try {
-          const { data: files, error: filesError } = await supabase
-            .storage
-            .from(BUCKET_NAME)
-            .list();
-            
-          if (filesError) {
-            console.error(`Error listing files in ${BUCKET_NAME} bucket:`, filesError);
-            setUploadError(`存储桶访问失败: ${filesError.message}`);
-            setStorageBucketExists(false);
-            setStorageChecking(false);
-            return;
-          }
-          
-          console.log(`Successfully listed files in ${BUCKET_NAME} bucket`, files);
-          setStorageBucketExists(true);
-          setUploadError(null);
-        } catch (err: any) {
-          console.error("Error listing files:", err);
-          setUploadError(`存储服务访问失败: ${err.message || '未知错误'}`);
-          setStorageBucketExists(false);
-        }
-      } catch (err: any) {
-        console.error("Storage bucket check exception:", err);
-        setUploadError(`存储服务初始化失败，请稍后再试`);
-        setStorageBucketExists(false);
-      } finally {
-        setStorageChecking(false);
-      }
-    };
-    
     verifyStorageBucket();
   }, []);
+
+  const verifyStorageBucket = async () => {
+    try {
+      setStorageChecking(true);
+      setUploadError(null);
+      console.log(`检查存储桶 '${BUCKET_NAME}' 是否存在...`);
+      
+      const bucketExists = await checkStorageBucket(BUCKET_NAME);
+      
+      if (!bucketExists) {
+        console.error(`${BUCKET_NAME} 存储桶不存在或无法访问`);
+        setUploadError(`模板图片存储桶可能不存在或无法访问，请点击刷新按钮重试`);
+        setStorageBucketExists(false);
+      } else {
+        console.log(`成功验证 '${BUCKET_NAME}' 存储桶存在并可访问`);
+        setStorageBucketExists(true);
+        setUploadError(null);
+      }
+    } catch (err: any) {
+      console.error("存储桶检查异常:", err);
+      setUploadError(`存储服务初始化失败: ${err.message || '未知错误'}`);
+      setStorageBucketExists(false);
+    } finally {
+      setStorageChecking(false);
+    }
+  };
+
+  const createStorageBucket = async () => {
+    try {
+      setIsCreatingBucket(true);
+      setUploadError(null);
+      console.log(`尝试创建存储桶 '${BUCKET_NAME}'...`);
+      
+      const success = await ensureStorageBucket(BUCKET_NAME);
+      
+      if (!success) {
+        setUploadError(`无法创建存储桶，请联系管理员或使用自动渲染选项`);
+        toast.error("存储桶创建失败");
+      } else {
+        setStorageBucketExists(true);
+        setUploadError(null);
+        toast.success("存储桶创建或访问成功");
+      }
+    } catch (err: any) {
+      console.error("创建存储桶异常:", err);
+      setUploadError(`创建存储桶失败: ${err.message || '未知错误'}`);
+    } finally {
+      setIsCreatingBucket(false);
+    }
+  };
 
   useEffect(() => {
     if (autoRenderCover && htmlTemplateFile?.content && htmlPreviewRef.current) {
@@ -130,7 +134,7 @@ const TemplateSubmitPage: React.FC = () => {
             setHtmlRendering(false);
           }
         } catch (error) {
-          console.error("Error rendering HTML preview:", error);
+          console.error("HTML预览渲染错误:", error);
           setHtmlRendering(false);
         }
       }, 500);
@@ -138,13 +142,13 @@ const TemplateSubmitPage: React.FC = () => {
   }, [htmlTemplateFile, autoRenderCover]);
 
   const handleCoverImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (storageChecking) {
-      toast.error("存储服务正在检查中，请稍后再试");
+    if (storageChecking || isCreatingBucket) {
+      toast.error("存储服务检查中，请稍后再试");
       return;
     }
     
     if (!storageBucketExists) {
-      toast.error("存储服务不可用，请选择自动渲染选项");
+      toast.error("存储服务不可用，请点击刷新按钮或选择自动渲染选项");
       return;
     }
     
@@ -352,9 +356,38 @@ const TemplateSubmitPage: React.FC = () => {
             <Alert variant="destructive" className="mb-6">
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>上传错误</AlertTitle>
-              <AlertDescription>
+              <AlertDescription className="space-y-2">
                 <p>{uploadError}</p>
-                <p className="mt-2 text-xs">
+                <div className="flex items-center space-x-2 mt-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={verifyStorageBucket}
+                    disabled={storageChecking || isCreatingBucket}
+                  >
+                    <RefreshCw className={`h-4 w-4 mr-1 ${storageChecking ? 'animate-spin' : ''}`} />
+                    刷新检查
+                  </Button>
+                  
+                  {!storageBucketExists && (
+                    <Button 
+                      variant="secondary" 
+                      size="sm"
+                      onClick={createStorageBucket}
+                      disabled={storageChecking || isCreatingBucket}
+                    >
+                      {isCreatingBucket ? (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                          创建中...
+                        </>
+                      ) : (
+                        <>尝试创建存储桶</>
+                      )}
+                    </Button>
+                  )}
+                </div>
+                <p className="text-xs mt-2">
                   {storageBucketExists === false 
                     ? "存储服务不可用。建议选择自动渲染选项，或稍后再试" 
                     : "请确保存储服务正常，或稍后再试"}

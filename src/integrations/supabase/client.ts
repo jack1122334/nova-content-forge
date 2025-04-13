@@ -71,10 +71,27 @@ type CustomDatabase = Database & {
 
 export const supabase = createClient<CustomDatabase>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
-// Helper function to check if a storage bucket exists
+// Helper function to check if a storage bucket exists and is accessible
 export const checkStorageBucket = async (bucketName: string): Promise<boolean> => {
   try {
-    // First check if the bucket exists
+    console.log(`Checking if storage bucket '${bucketName}' exists...`);
+    
+    // First attempt to list the bucket to see if it's accessible
+    try {
+      const { data: files, error } = await supabase.storage.from(bucketName).list();
+      
+      if (!error) {
+        console.log(`Successfully accessed bucket '${bucketName}' and found ${files.length} files`);
+        return true;
+      }
+      
+      // If we get an error from listing, it might be permissions or the bucket doesn't exist
+      console.log(`Error listing files in bucket '${bucketName}':`, error.message);
+    } catch (e) {
+      console.error(`Exception when listing files in '${bucketName}':`, e);
+    }
+    
+    // As a fallback, try to list all buckets to see if our bucket is in the list
     const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
     
     if (bucketsError) {
@@ -83,9 +100,48 @@ export const checkStorageBucket = async (bucketName: string): Promise<boolean> =
     }
     
     const bucket = buckets?.find(bucket => bucket.name === bucketName);
-    return !!bucket;
+    console.log(`Bucket '${bucketName}' exists in bucket list:`, !!bucket);
+    
+    if (bucket) {
+      // Bucket exists in the list, but we had issues accessing it
+      console.log(`Bucket '${bucketName}' exists but may have permission issues`);
+      return true;
+    }
+    
+    return false;
   } catch (err) {
     console.error(`Error checking bucket ${bucketName}:`, err);
+    return false;
+  }
+};
+
+// Helper function to create a storage bucket if it doesn't exist
+export const ensureStorageBucket = async (bucketName: string): Promise<boolean> => {
+  try {
+    // First check if the bucket exists
+    const bucketExists = await checkStorageBucket(bucketName);
+    
+    if (bucketExists) {
+      console.log(`Bucket '${bucketName}' already exists`);
+      return true;
+    }
+    
+    // Try to create the bucket
+    console.log(`Attempting to create bucket '${bucketName}'...`);
+    const { data, error } = await supabase.storage.createBucket(bucketName, {
+      public: true,
+      fileSizeLimit: 1024 * 1024 * 10, // 10MB
+    });
+    
+    if (error) {
+      console.error(`Error creating bucket '${bucketName}':`, error);
+      return false;
+    }
+    
+    console.log(`Successfully created bucket '${bucketName}'`);
+    return true;
+  } catch (err) {
+    console.error(`Error ensuring bucket ${bucketName}:`, err);
     return false;
   }
 };
