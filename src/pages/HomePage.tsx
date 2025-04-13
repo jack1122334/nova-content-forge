@@ -5,8 +5,9 @@ import Stats from "@/components/home/Stats";
 import TaskCarousel from "@/components/home/TaskCarousel";
 import TemplateFilter from "@/components/home/TemplateFilter";
 import TemplateCard from "@/components/home/TemplateCard";
+import DecorativeElements from "@/components/home/DecorativeElements";
 import { TaskCardProps } from "@/components/marketplace/TaskCard";
-import { Loader2 } from "lucide-react";
+import { Loader2, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -252,55 +253,83 @@ const HomePage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-16">
-      {/* Hero Section with Google-like Search */}
-      <div className="relative flex flex-col items-center justify-center py-24 space-y-10 overflow-hidden">
-        {/* Background decorative elements */}
-        <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-r from-nova-blue/20 to-nova-light-blue/20 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 animate-pulse"></div>
-        <div className="absolute bottom-0 right-0 w-80 h-80 bg-gradient-to-l from-nova-blue/10 to-nova-light-blue/10 rounded-full blur-3xl translate-x-1/3 translate-y-1/3 animate-pulse animation-delay-2000"></div>
-        
-        <h1 className="text-4xl md:text-6xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-nova-dark-gray to-nova-blue leading-tight">
-          <span className="text-nova-blue font-extrabold">Nova</span>: World's first AI influencer marketing platform
+    <div className="space-y-16 relative">
+      {/* Decorative background elements */}
+      <DecorativeElements />
+      
+      {/* Hero Section with Enhanced Search */}
+      <div className="relative flex flex-col items-center justify-center py-24 space-y-12 overflow-hidden">
+        {/* Heading with enhanced typography and animation */}
+        <h1 className="text-4xl md:text-6xl font-bold text-center leading-tight max-w-4xl animate-fade-in">
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-nova-deep-purple via-nova-blue to-nova-hot-pink font-extrabold">
+            Nova
+          </span>
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-nova-dark-gray to-nova-blue">
+            : World's first AI influencer marketing platform
+          </span>
         </h1>
         
-        <div className="w-full max-w-2xl mx-auto transform transition-all duration-500 hover:scale-[1.02]">
+        {/* Tagline with staggered animation */}
+        <p className="text-lg text-nova-gray max-w-2xl text-center animate-fade-in animation-delay-300">
+          创造独特的社媒内容，连接品牌与创作者，提升市场影响力
+        </p>
+        
+        {/* Enhanced SearchBox */}
+        <div className="w-full max-w-2xl mx-auto transform transition-all duration-500 hover:scale-[1.02] animate-fade-in animation-delay-500">
           <SearchBox />
         </div>
         
-        <div className="w-full max-w-4xl animate-fade-in">
+        {/* Stats with enhanced visuals */}
+        <div className="w-full max-w-4xl animate-fade-in animation-delay-700">
           <Stats />
         </div>
       </div>
       
-      {/* Task Carousel Section */}
-      <div className="relative px-4 py-10 rounded-3xl bg-gradient-to-r from-white to-nova-light-gray/30 backdrop-blur-sm border border-white shadow-xl">
-        <div className="absolute inset-0 bg-white/50 backdrop-blur-sm rounded-3xl -z-10"></div>
+      {/* Task Carousel Section with enhanced glass effect */}
+      <div className="relative px-4 py-10 rounded-3xl glass-morphism border border-white/30 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-nova-blue/5 to-nova-deep-purple/5 rounded-3xl -z-10"></div>
         <TaskCarousel tasks={mockTasks} />
       </div>
       
-      {/* Templates Section - Copied from InspirationPage */}
+      {/* Templates Section with enhanced glass effect */}
       <div className="relative">
         <TemplateFilter onFilterChange={handleFilterChange} />
         
-        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl p-8 border border-gray-100/50">
+        <div className="glass-morphism rounded-3xl p-8 border border-white/30 overflow-hidden">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-xl font-bold text-nova-dark-gray bg-clip-text text-transparent bg-gradient-to-r from-nova-dark-gray to-nova-blue">热门灵感</h2>
-            <div className="flex space-x-2">
+            <div className="flex items-center">
+              <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-nova-deep-purple to-nova-blue mr-2">热门灵感</h2>
+              <Sparkles className="h-5 w-5 text-nova-hot-pink animate-pulse" />
+            </div>
+            
+            <div className="flex space-x-3">
               <button 
                 onClick={() => setSortBy("newest")}
-                className={`text-sm px-5 py-2.5 rounded-full transform transition-all duration-300 ${sortBy === "newest" ? 'bg-gradient-to-r from-nova-blue to-nova-light-blue text-white shadow-lg' : 'bg-nova-light-gray text-nova-dark-gray hover:scale-105'}`}
+                className={`text-sm px-5 py-2.5 rounded-full transform transition-all duration-300 ${
+                  sortBy === "newest" 
+                    ? 'bg-gradient-to-r from-nova-deep-purple to-nova-blue text-white shadow-lg' 
+                    : 'bg-white/80 backdrop-blur-sm text-nova-dark-gray hover:scale-105 border border-white/50'
+                }`}
               >
                 最新
               </button>
               <button 
                 onClick={() => setSortBy("popular")}
-                className={`text-sm px-5 py-2.5 rounded-full transform transition-all duration-300 ${sortBy === "popular" ? 'bg-gradient-to-r from-nova-blue to-nova-light-blue text-white shadow-lg' : 'bg-nova-light-gray text-nova-dark-gray hover:scale-105'}`}
+                className={`text-sm px-5 py-2.5 rounded-full transform transition-all duration-300 ${
+                  sortBy === "popular" 
+                    ? 'bg-gradient-to-r from-nova-hot-pink to-nova-vivid-orange text-white shadow-lg' 
+                    : 'bg-white/80 backdrop-blur-sm text-nova-dark-gray hover:scale-105 border border-white/50'
+                }`}
               >
                 热门
               </button>
               <button 
                 onClick={() => setSortBy("recommended")}
-                className={`text-sm px-5 py-2.5 rounded-full transform transition-all duration-300 ${sortBy === "recommended" ? 'bg-gradient-to-r from-nova-blue to-nova-light-blue text-white shadow-lg' : 'bg-nova-light-gray text-nova-dark-gray hover:scale-105'}`}
+                className={`text-sm px-5 py-2.5 rounded-full transform transition-all duration-300 ${
+                  sortBy === "recommended" 
+                    ? 'bg-gradient-to-r from-nova-vivid-orange to-nova-blue text-white shadow-lg' 
+                    : 'bg-white/80 backdrop-blur-sm text-nova-dark-gray hover:scale-105 border border-white/50'
+                }`}
               >
                 推荐
               </button>
@@ -309,17 +338,21 @@ const HomePage: React.FC = () => {
           
           {isLoading ? (
             <div className="flex justify-center items-center py-20">
-              <Loader2 className="h-10 w-10 text-nova-blue animate-spin" />
+              <div className="relative">
+                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-nova-blue to-nova-deep-purple blur-md animate-pulse"></div>
+                <Loader2 className="h-12 w-12 text-nova-blue animate-spin relative" />
+              </div>
             </div>
           ) : filteredTemplates.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-              {filteredTemplates.map(template => (
-                <TemplateCard 
-                  key={template.id} 
-                  {...template} 
-                  isFavorite={userFavorites.includes(template.id)}
-                  onToggleFavorite={() => handleToggleFavorite(template.id)}
-                />
+              {filteredTemplates.map((template, index) => (
+                <div key={template.id} className={`animate-fade-in animation-delay-${index % 5}00`}>
+                  <TemplateCard 
+                    {...template} 
+                    isFavorite={userFavorites.includes(template.id)}
+                    onToggleFavorite={() => handleToggleFavorite(template.id)}
+                  />
+                </div>
               ))}
             </div>
           ) : (
@@ -331,10 +364,11 @@ const HomePage: React.FC = () => {
           {filteredTemplates.length > 0 && (
             <div className="flex justify-center mt-10">
               <button 
-                className="px-8 py-3 rounded-full bg-white text-nova-blue border-2 border-nova-blue hover:bg-blue-50 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                className="relative overflow-hidden px-8 py-3 rounded-full bg-white text-nova-blue border-2 border-nova-blue hover:bg-blue-50 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group"
                 onClick={loadMore}
               >
-                加载更多
+                <span className="relative z-10">加载更多</span>
+                <span className="absolute inset-0 bg-gradient-to-r from-nova-blue via-nova-deep-purple to-nova-blue bg-[length:200%_100%] opacity-0 group-hover:opacity-10 group-hover:animate-glimmer"></span>
               </button>
             </div>
           )}

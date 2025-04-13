@@ -11,7 +11,7 @@
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 210 100% 40%;
+    --primary: 246 78% 63%;  /* Updated to match nova-blue */
     --primary-foreground: 0 0% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -23,16 +23,16 @@
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    --ring: 246 78% 63%;
     --radius: 1rem;
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 240 10% 3.9%;
-    --sidebar-primary: 210 100% 40%;
+    --sidebar-primary: 246 78% 63%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 210 40% 96.1%;
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 214.3 31.8% 91.4%;
-    --sidebar-ring: 221.2 83.2% 53.3%;
+    --sidebar-ring: 246 78% 63%;
   }
 
   * {
@@ -67,17 +67,55 @@
     @apply h-full bg-nova-blue;
   }
   
-  /* New Premium UI Utilities */
+  /* Premium UI Utilities */
   .glass-card {
-    @apply bg-white/80 backdrop-blur-sm border border-white/20 rounded-2xl shadow-lg;
+    @apply bg-white/80 backdrop-blur-sm border border-white/20 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300;
+  }
+  
+  .glass-morphism {
+    @apply backdrop-blur-xl bg-white/70 border border-white/20 shadow-lg;
   }
   
   .premium-gradient {
-    @apply bg-gradient-to-r from-nova-blue to-nova-light-blue;
+    @apply bg-gradient-to-r from-nova-deep-purple to-nova-blue;
   }
   
   .premium-text {
     @apply text-transparent bg-clip-text bg-gradient-to-r from-nova-dark-gray to-nova-blue;
+  }
+  
+  .glowing-border {
+    @apply relative after:absolute after:inset-0 after:rounded-2xl after:p-0.5 
+    after:bg-gradient-to-r after:from-nova-blue after:via-nova-hot-pink after:to-nova-vivid-orange 
+    after:opacity-0 hover:after:opacity-100 after:transition-opacity after:duration-500;
+  }
+  
+  .hover-scale {
+    @apply transition-transform duration-300 hover:scale-105;
+  }
+  
+  .hover-float {
+    @apply transition-all duration-300 hover:-translate-y-2;
+  }
+
+  .animation-delay-100 {
+    animation-delay: 0.1s;
+  }
+  
+  .animation-delay-300 {
+    animation-delay: 0.3s;
+  }
+  
+  .animation-delay-500 {
+    animation-delay: 0.5s;
+  }
+  
+  .animation-delay-700 {
+    animation-delay: 0.7s;
+  }
+  
+  .animation-delay-900 {
+    animation-delay: 0.9s;
   }
   
   .animation-delay-1000 {
@@ -93,7 +131,7 @@
   }
 }
 
-/* New animation keyframes */
+/* Animation keyframes */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -110,6 +148,21 @@
   100% { transform: scale(1); opacity: 0.8; }
 }
 
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .animate-fade-in {
   animation: fadeIn 0.5s ease-out forwards;
 }
@@ -120,4 +173,18 @@
 
 .animate-pulse {
   animation: pulse 6s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%);
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 15s linear infinite;
 }

@@ -64,8 +64,11 @@ export default {
           ring: "hsl(var(--sidebar-ring))",
         },
         nova: {
-          blue: "#0066CC",
-          "light-blue": "#5AC8FA",
+          blue: "#4F6BF2", // Updated to a more vibrant blue
+          "light-blue": "#7AFFDF", // More vibrant teal
+          "deep-purple": "#8B5CF6", // Adding a new purple
+          "hot-pink": "#D946EF", // Adding a vibrant pink
+          "vivid-orange": "#F97316", // Adding a vibrant orange
           gray: "#8E8E93",
           "light-gray": "#F5F5F7",
           "dark-gray": "#333333",
@@ -100,6 +103,19 @@ export default {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-10px)" },
         },
+        "glimmer": {
+          "0%": { backgroundPosition: "0% 50%" },
+          "100%": { backgroundPosition: "200% 50%" },
+        },
+        "float-rotate": {
+          "0%": { transform: "translateY(0) rotate(0deg)" },
+          "50%": { transform: "translateY(-10px) rotate(3deg)" },
+          "100%": { transform: "translateY(0) rotate(0deg)" },
+        },
+        "scale-pulse": {
+          "0%, 100%": { transform: "scale(1)", opacity: "0.8" },
+          "50%": { transform: "scale(1.1)", opacity: "0.5" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -107,6 +123,9 @@ export default {
         "fade-in": "fade-in 0.3s ease-out",
         "slide-in": "slide-in 0.3s ease-out",
         "float": "float 6s ease-in-out infinite",
+        "glimmer": "glimmer 8s linear infinite",
+        "float-rotate": "float-rotate 8s ease-in-out infinite",
+        "scale-pulse": "scale-pulse 8s ease-in-out infinite",
       },
       fontFamily: {
         sans: [
@@ -120,6 +139,10 @@ export default {
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
+        "gradient-premium": "linear-gradient(90deg, hsla(277, 75%, 84%, 1) 0%, hsla(297, 50%, 51%, 1) 100%)",
+        "gradient-modern": "linear-gradient(90deg, hsla(221, 45%, 73%, 1) 0%, hsla(220, 78%, 29%, 1) 100%)",
+        "gradient-sunset": "linear-gradient(90deg, hsla(339, 100%, 76%, 1) 0%, hsla(59, 100%, 81%, 1) 100%)",
+        "gradient-cyber": "linear-gradient(184.1deg, rgba(249,255,182,1) 44.7%, rgba(226,255,172,1) 67.2%)",
       },
     },
   },
