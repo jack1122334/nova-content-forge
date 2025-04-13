@@ -70,3 +70,22 @@ type CustomDatabase = Database & {
 };
 
 export const supabase = createClient<CustomDatabase>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+// Helper function to check if a storage bucket exists
+export const checkStorageBucket = async (bucketName: string): Promise<boolean> => {
+  try {
+    // First check if the bucket exists
+    const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+    
+    if (bucketsError) {
+      console.error("Error listing buckets:", bucketsError);
+      return false;
+    }
+    
+    const bucket = buckets?.find(bucket => bucket.name === bucketName);
+    return !!bucket;
+  } catch (err) {
+    console.error(`Error checking bucket ${bucketName}:`, err);
+    return false;
+  }
+};

@@ -9,7 +9,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, checkStorageBucket } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
@@ -36,6 +36,8 @@ type FileWithPreview = {
   content?: string;
 };
 
+const BUCKET_NAME = 'template-images';
+
 const TemplateSubmitPage: React.FC = () => {
   const [coverImage, setCoverImage] = useState<FileWithPreview | null>(null);
   const [templateFiles, setTemplateFiles] = useState<FileWithPreview[]>([]);
@@ -46,6 +48,7 @@ const TemplateSubmitPage: React.FC = () => {
   const [htmlRendering, setHtmlRendering] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [storageBucketExists, setStorageBucketExists] = useState<boolean | null>(null);
+  const [storageChecking, setStorageChecking] = useState(true);
   const navigate = useNavigate();
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -63,55 +66,56 @@ const TemplateSubmitPage: React.FC = () => {
   });
 
   useEffect(() => {
-    const checkStorageBucket = async () => {
+    const verifyStorageBucket = async () => {
       try {
-        console.log("Checking if storage bucket 'template-images' exists...");
+        setStorageChecking(true);
+        console.log(`Checking if storage bucket '${BUCKET_NAME}' exists...`);
         
-        const { data: buckets, error: bucketsError } = await supabase
-          .storage
-          .listBuckets();
+        const bucketExists = await checkStorageBucket(BUCKET_NAME);
+        
+        if (!bucketExists) {
+          console.error(`${BUCKET_NAME} bucket not found or not accessible`);
+          setUploadError(`模板图片存储桶不存在，请联系管理员创建`);
+          setStorageBucketExists(false);
+          setStorageChecking(false);
+          return;
+        }
+        
+        console.log(`Successfully verified '${BUCKET_NAME}' bucket exists`);
+        
+        // Check if we can actually list files in the bucket
+        try {
+          const { data: files, error: filesError } = await supabase
+            .storage
+            .from(BUCKET_NAME)
+            .list();
+            
+          if (filesError) {
+            console.error(`Error listing files in ${BUCKET_NAME} bucket:`, filesError);
+            setUploadError(`存储桶访问失败: ${filesError.message}`);
+            setStorageBucketExists(false);
+            setStorageChecking(false);
+            return;
+          }
           
-        if (bucketsError) {
-          console.error("Error listing buckets:", bucketsError);
-          setUploadError(`存储服务列表获取失败: ${bucketsError.message}`);
+          console.log(`Successfully listed files in ${BUCKET_NAME} bucket`, files);
+          setStorageBucketExists(true);
+          setUploadError(null);
+        } catch (err: any) {
+          console.error("Error listing files:", err);
+          setUploadError(`存储服务访问失败: ${err.message || '未知错误'}`);
           setStorageBucketExists(false);
-          return;
         }
-        
-        const templateBucket = buckets?.find(bucket => bucket.name === 'template-images');
-        
-        if (!templateBucket) {
-          console.error("Template images bucket not found in bucket list");
-          setUploadError("模板图片存储桶不存在，请联系管理员创建");
-          setStorageBucketExists(false);
-          return;
-        }
-        
-        console.log("Found template-images bucket:", templateBucket);
-        
-        const { data: files, error: filesError } = await supabase
-          .storage
-          .from('template-images')
-          .list();
-          
-        if (filesError) {
-          console.error("Error listing files in template-images bucket:", filesError);
-          setUploadError(`存储桶访问失败: ${filesError.message}`);
-          setStorageBucketExists(false);
-          return;
-        }
-        
-        console.log("Successfully listed files in template-images bucket", files);
-        setStorageBucketExists(true);
-        setUploadError(null);
       } catch (err: any) {
         console.error("Storage bucket check exception:", err);
-        setUploadError(`存储服务检查异常: ${err.message || '未知错误'}`);
+        setUploadError(`存储服务初始化失败，请稍后再试`);
         setStorageBucketExists(false);
+      } finally {
+        setStorageChecking(false);
       }
     };
     
-    checkStorageBucket();
+    verifyStorageBucket();
   }, []);
 
   useEffect(() => {
@@ -134,8 +138,13 @@ const TemplateSubmitPage: React.FC = () => {
   }, [htmlTemplateFile, autoRenderCover]);
 
   const handleCoverImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (storageChecking) {
+      toast.error("存储服务正在检查中，请稍后再试");
+      return;
+    }
+    
     if (!storageBucketExists) {
-      toast.error("存储服务暂不可用，请稍后再试");
+      toast.error("存储服务不可用，请选择自动渲染选项");
       return;
     }
     
@@ -228,11 +237,6 @@ const TemplateSubmitPage: React.FC = () => {
       return;
     }
     
-    if (!storageBucketExists && !autoRenderCover) {
-      toast.error("存储服务不可用，请使用自动渲染或稍后再试");
-      return;
-    }
-    
     setIsSubmitting(true);
     setUploadError(null);
     
@@ -250,13 +254,13 @@ const TemplateSubmitPage: React.FC = () => {
         const timestamp = Date.now();
         const sanitizedFilename = coverImage.name.replace(/\s+/g, '_');
         const userFolder = userId || 'anonymous';
-        const filePath = `${userFolder}/${timestamp}-${sanitizedFilename}`;
+        const filePath = `${userFolder}/${timestamp}_${sanitizedFilename}`;
         
         console.log("Attempting to upload cover image to:", filePath);
         
         try {
           const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('template-images')
+            .from(BUCKET_NAME)
             .upload(filePath, coverImage.file, {
               cacheControl: '3600',
               upsert: false
@@ -273,7 +277,7 @@ const TemplateSubmitPage: React.FC = () => {
           console.log("Cover image uploaded successfully:", uploadData);
           
           const { data: urlData } = supabase.storage
-            .from('template-images')
+            .from(BUCKET_NAME)
             .getPublicUrl(filePath);
             
           coverImageUrl = urlData.publicUrl;
@@ -335,7 +339,16 @@ const TemplateSubmitPage: React.FC = () => {
             </p>
           </div>
           
-          {uploadError && (
+          {storageChecking ? (
+            <Alert className="mb-6">
+              <Skeleton className="h-5 w-5" />
+              <AlertTitle>正在检查存储服务状态...</AlertTitle>
+              <AlertDescription>
+                <Skeleton className="h-4 w-full my-2" />
+                <Skeleton className="h-4 w-3/4" />
+              </AlertDescription>
+            </Alert>
+          ) : uploadError ? (
             <Alert variant="destructive" className="mb-6">
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>上传错误</AlertTitle>
@@ -348,7 +361,7 @@ const TemplateSubmitPage: React.FC = () => {
                 </p>
               </AlertDescription>
             </Alert>
-          )}
+          ) : null}
           
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -516,7 +529,8 @@ const TemplateSubmitPage: React.FC = () => {
                   </label>
                 </div>
                 <div className="text-xs text-nova-gray italic mb-4">
-                  选择此选项后，将根据HTML代码渲染封面图{!storageBucketExists ? "（推荐，因为存储服务暂不可用）" : ""}
+                  选择此选项后，将根据HTML代码渲染封面图
+                  {!storageBucketExists ? " （推荐，因为存储服务暂不可用）" : ""}
                 </div>
                 
                 {autoRenderCover && htmlTemplateFile?.content && (
@@ -543,10 +557,17 @@ const TemplateSubmitPage: React.FC = () => {
               </div>
               
               <div className={autoRenderCover ? 'opacity-50 pointer-events-none' : ''}>
-                <label className="block text-sm font-medium text-nova-gray mb-2">上传封面图 {!autoRenderCover && "(可选)"}</label>
+                <label className="block text-sm font-medium text-nova-gray mb-2">
+                  上传封面图 {!autoRenderCover && "(可选)"} 
+                  {storageChecking && " (检查存储服务中...)"}
+                </label>
                 <div 
-                  className={`border-2 border-dashed ${coverImage ? 'border-nova-blue' : 'border-gray-200'} rounded-lg p-8 text-center hover:border-nova-blue transition-colors cursor-pointer ${!storageBucketExists && !autoRenderCover ? 'opacity-70' : ''}`}
+                  className={`border-2 border-dashed ${coverImage ? 'border-nova-blue' : 'border-gray-200'} rounded-lg p-8 text-center hover:border-nova-blue transition-colors cursor-pointer ${!storageBucketExists && !autoRenderCover ? 'opacity-70' : ''} ${storageChecking ? 'animate-pulse' : ''}`}
                   onClick={() => {
+                    if (storageChecking) {
+                      toast.error("存储服务检查中，请稍后再试");
+                      return;
+                    }
                     if (!storageBucketExists && !autoRenderCover) {
                       toast.error("存储服务暂不可用，请使用自动渲染选项");
                       return;
@@ -580,9 +601,14 @@ const TemplateSubmitPage: React.FC = () => {
                       </div>
                       <p className="text-sm text-nova-gray mb-2">点击或拖拽上传封面图</p>
                       <p className="text-xs text-nova-gray">支持 JPG, PNG 格式，建议尺寸 800x600 像素</p>
-                      {!storageBucketExists && !autoRenderCover && (
+                      {!storageBucketExists && !autoRenderCover && !storageChecking && (
                         <p className="mt-2 text-xs text-red-500 font-medium">
                           存储服务暂不可用，请考虑使用自动渲染选项
+                        </p>
+                      )}
+                      {storageChecking && (
+                        <p className="mt-2 text-xs text-blue-500 font-medium">
+                          正在检查存储服务状态...
                         </p>
                       )}
                     </>
@@ -593,7 +619,7 @@ const TemplateSubmitPage: React.FC = () => {
                     className="hidden"
                     accept="image/*"
                     onChange={handleCoverImageUpload}
-                    disabled={!storageBucketExists && !autoRenderCover}
+                    disabled={!storageBucketExists && !autoRenderCover || storageChecking}
                   />
                 </div>
               </div>
@@ -675,9 +701,9 @@ const TemplateSubmitPage: React.FC = () => {
                 <button 
                   type="submit" 
                   className="nova-button py-3 px-8"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || storageChecking}
                 >
-                  {isSubmitting ? '提交中...' : '提交审核'}
+                  {isSubmitting ? '提交中...' : (storageChecking ? '检查存储中...' : '提交审核')}
                 </button>
               </div>
             </form>
