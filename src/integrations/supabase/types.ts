@@ -9,6 +9,57 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      brand_tasks: {
+        Row: {
+          brand: string
+          brief: string
+          budget: string | null
+          category: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          participants: number | null
+          platform: string | null
+          progress: number | null
+          requirement: string | null
+          reward: string | null
+          type: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          brand: string
+          brief: string
+          budget?: string | null
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id: string
+          participants?: number | null
+          platform?: string | null
+          progress?: number | null
+          requirement?: string | null
+          reward?: string | null
+          type?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          brand?: string
+          brief?: string
+          budget?: string | null
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          participants?: number | null
+          platform?: string | null
+          progress?: number | null
+          requirement?: string | null
+          reward?: string | null
+          type?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

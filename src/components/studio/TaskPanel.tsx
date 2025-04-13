@@ -69,6 +69,9 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange }
               onTaskDetailChange(recentTask.description);
             }
           }
+        } else {
+          // If no tasks in database, seed from MarketplacePage mock data
+          console.log("No tasks found in database, will seed from mock data on next MarketplacePage visit");
         }
       } catch (error) {
         console.error("Error in fetchTasks:", error);
@@ -84,13 +87,15 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange }
     if (initialTask) {
       setTask(initialTask);
       setSelectedTaskId(initialTask.id);
-      console.log("Task set in TaskPanel:", initialTask);
+      console.log("Task set in TaskPanel from initialTask:", initialTask);
       
       // Save this task as the recently selected task
       localStorage.setItem('recentlySelectedTask', JSON.stringify(initialTask));
       
       if (!initialTask.description && initialTask.id) {
         fetchTaskDescription(initialTask.id);
+      } else if (onTaskDetailChange && initialTask.description) {
+        onTaskDetailChange(initialTask.description);
       }
     }
   }, [initialTask]);

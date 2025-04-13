@@ -42,6 +42,7 @@ const MarketplacePage: React.FC = () => {
           progress: task.progress || 0,
           participants: task.participants || 0,
           description: task.description || "",
+          requirement: task.requirement
         }));
         
         setTasks(formattedTasks);
@@ -70,6 +71,7 @@ const MarketplacePage: React.FC = () => {
   
   const seedTasksToDatabase = async () => {
     try {
+      console.log("Seeding tasks to database...");
       const { error } = await supabase
         .from('brand_tasks')
         .insert(mockTasks.map(task => ({
@@ -83,7 +85,8 @@ const MarketplacePage: React.FC = () => {
           reward: task.reward,
           type: task.type,
           progress: task.progress,
-          participants: task.participants
+          participants: task.participants,
+          requirement: task.requirement
         })));
       
       if (error) {
@@ -94,6 +97,7 @@ const MarketplacePage: React.FC = () => {
       }
       
       console.log("Successfully seeded tasks to database");
+      toast.success("成功初始化任务数据");
       fetchTasks();
     } catch (error) {
       console.error("Error in seedTasksToDatabase:", error);
@@ -108,7 +112,7 @@ const MarketplacePage: React.FC = () => {
   const handleCloseDetail = () => {
     setSelectedTask(null);
   };
-
+  
   const taskDescriptions: Record<string, string> = {
     "1": "通过真实体验分享，展示海洋至尊洗面奶的清洁效果和使用感受。重点突出产品的温和配方、去油控油效果以及使用后肌肤的舒适度。建议在早晚洁面时使用，并拍摄使用前后的对比效果。",
     "2": "零跑汽车智能驾驶辅助系统新品上市，需要创作者对智能驾驶功能进行实际体验并分享。内容应包含智能辅助驾驶、自动泊车、车道保持等功能的实测，突出系统的便捷性和安全性。",
@@ -121,7 +125,7 @@ const MarketplacePage: React.FC = () => {
     "9": "欧莱雅防晒产品测评，需要创作者对产品的防晒效果、质地、使用感受进行全面评测。内容应包含产品成分分析、使用方法演示以及适合肤质推荐。建议进行实际防晒效果测试。",
     "10": "三只松鼠新品休闲零食试吃体验，需要创作者展示产品的口感、包装和特色。内容应包含开箱、品尝反应和详细评价，突出产品的风味特点和与其他零食的区别。",
     "11": "Zara秋冬系列上新，需要创作者展示多种穿搭组合。内容应包含至少3套不同风格的搭配方案，突出服装的质感、设计细节和实穿性。推荐结合季节特点提供时尚建议。",
-    "12": "迪卡侬户外徒步装备分���，需要创作者在实际户外环境中测试并展示产品性能。内容应包含装备的功能特点、使用体验和适用场景推荐，突出产品的实用性和性价比。"
+    "12": "迪卡侬户外徒步装备分享，需要创作者在实际户外环境中测试并展示产品性能。内容应包含装备的功能特点、使用体验和适用场景推荐，突出产品的实用性和性价比。"
   };
 
   const mockTasks: TaskCardProps[] = [
