@@ -33,27 +33,30 @@ const TaskCard: React.FC<TaskCardProps> = ({
   const getTypeColor = (type: string) => {
     switch (type) {
       case "门槛任务":
-        return "bg-blue-50 text-blue-500";
+        return "bg-blue-50/70 text-nova-blue backdrop-blur-sm border border-blue-100/50";
       case "奖金任务":
-        return "bg-green-50 text-green-500";
+        return "bg-green-50/70 text-green-500 backdrop-blur-sm border border-green-100/50";
       case "赏金任务":
-        return "bg-purple-50 text-purple-500";
+        return "bg-purple-50/70 text-nova-deep-purple backdrop-blur-sm border border-purple-100/50";
       case "直接认领":
-        return "bg-orange-50 text-orange-500";
+        return "bg-orange-50/70 text-nova-vivid-orange backdrop-blur-sm border border-orange-100/50";
       default:
-        return "bg-gray-50 text-gray-500";
+        return "bg-gray-50/70 text-gray-500 backdrop-blur-sm border border-gray-100/50";
     }
   };
 
   return (
     <div 
-      className="nova-card cursor-pointer h-full"
+      className="glass-card hover:translate-y-[-5px] transition-all duration-300 cursor-pointer h-full group shadow-sm hover:shadow-lg overflow-hidden"
       onClick={onClick}
     >
-      <div className="p-4 flex flex-col h-full">
+      {/* Subtle hover glow effect */}
+      <div className="absolute inset-0 bg-gradient-to-r from-nova-blue/0 via-nova-hot-pink/0 to-nova-deep-purple/0 opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-xl"></div>
+      
+      <div className="p-4 flex flex-col h-full relative z-10">
         <div className="flex justify-between items-start mb-3">
           <div>
-            <h3 className="text-base font-medium text-nova-dark-gray">{brand}</h3>
+            <h3 className="text-base font-medium text-nova-dark-gray group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-nova-blue group-hover:to-nova-deep-purple transition-all duration-300">{brand}</h3>
             <p className="text-xs text-nova-gray">{category}</p>
           </div>
           <span className={`px-2 py-1 rounded-full text-xs ${getTypeColor(type)}`}>
@@ -80,7 +83,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
           
           <div className="mb-2">
             <p className="text-xs text-nova-gray">奖励机制</p>
-            <p className="text-xs text-nova-blue truncate">{reward || "无"}</p>
+            <p className="text-xs text-nova-blue truncate group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-nova-blue group-hover:to-nova-hot-pink transition-all duration-300">{reward || "无"}</p>
           </div>
           
           {requirement && (
@@ -92,14 +95,21 @@ const TaskCard: React.FC<TaskCardProps> = ({
         </div>
         
         <div>
-          <div className="nova-progress mb-1">
-            <div className="nova-progress-bar" style={{ width: `${progress}%` }}></div>
+          <div className="h-1.5 bg-gray-100/50 rounded-full overflow-hidden backdrop-blur-sm mb-1">
+            <div 
+              className="h-full bg-gradient-to-r from-nova-blue to-nova-deep-purple rounded-full" 
+              style={{ width: `${progress}%` }}
+            ></div>
           </div>
           <div className="flex justify-between text-xs text-nova-gray">
             <span>进度 {progress}%</span>
             <span>{participants} 人参与</span>
           </div>
         </div>
+        
+        {/* Decorative elements */}
+        <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-nova-blue/10 blur-sm"></div>
+        <div className="absolute bottom-3 left-3 w-1.5 h-1.5 rounded-full bg-nova-hot-pink/10 blur-sm"></div>
       </div>
     </div>
   );

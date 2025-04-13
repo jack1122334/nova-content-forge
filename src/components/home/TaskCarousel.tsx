@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from "react";
 import TaskCard, { TaskCardProps } from "../marketplace/TaskCard";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, SparklesIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
@@ -134,15 +135,19 @@ const TaskCarousel: React.FC<TaskCarouselProps> = ({ tasks: propTasks }) => {
 
   return (
     <div className="relative">
-      <div className="absolute -inset-8 rounded-3xl bg-gradient-to-r from-nova-deep-purple/5 via-nova-blue/2 to-nova-hot-pink/5 blur-3xl -z-10"></div>
+      {/* Enhanced background effect */}
+      <div className="absolute -inset-10 bg-gradient-to-r from-nova-blue/10 via-nova-hot-pink/5 to-nova-deep-purple/10 rounded-3xl blur-3xl -z-10 opacity-70"></div>
       
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-lg font-semibold text-transparent bg-clip-text bg-gradient-to-r from-nova-dark-gray to-nova-blue">热门品牌任务</h2>
+      <div className="flex justify-between items-center mb-8">
+        <div className="flex items-center space-x-2">
+          <SparklesIcon className="h-5 w-5 text-nova-hot-pink animate-pulse" />
+          <h2 className="text-lg font-semibold text-transparent bg-clip-text bg-gradient-to-r from-nova-deep-purple to-nova-blue">热门品牌任务</h2>
+        </div>
         <div className="flex items-center">
-          <button className="w-10 h-10 rounded-full flex items-center justify-center text-nova-gray hover:text-nova-blue backdrop-blur-md bg-white/30 border border-white/30 transition-all duration-300 transform hover:scale-110 hover:shadow-md mr-2">
+          <button className="w-10 h-10 rounded-full flex items-center justify-center text-nova-blue hover:text-white backdrop-blur-md bg-white/40 border border-white/50 transition-all duration-300 transform hover:scale-110 hover:bg-nova-blue/80 hover:shadow-lg mr-2">
             <ChevronLeft className="h-5 w-5" />
           </button>
-          <button className="w-10 h-10 rounded-full flex items-center justify-center text-nova-gray hover:text-nova-blue backdrop-blur-md bg-white/30 border border-white/30 transition-all duration-300 transform hover:scale-110 hover:shadow-md">
+          <button className="w-10 h-10 rounded-full flex items-center justify-center text-nova-blue hover:text-white backdrop-blur-md bg-white/40 border border-white/50 transition-all duration-300 transform hover:scale-110 hover:bg-nova-blue/80 hover:shadow-lg">
             <ChevronRight className="h-5 w-5" />
           </button>
         </div>
@@ -150,12 +155,17 @@ const TaskCarousel: React.FC<TaskCarouselProps> = ({ tasks: propTasks }) => {
       
       <div className="grid grid-cols-5 gap-4">
         {tasks.slice(0, 5).map((task, index) => (
-          <div key={task.id} className={`animate-fade-in animation-delay-${index * 2}00`}>
+          <div 
+            key={task.id} 
+            className={`animate-fade-in animation-delay-${index * 2}00 hover:z-10`} 
+            style={{ animationDelay: `${index * 0.1}s` }}
+          >
             <TaskCard {...task} onClick={() => handleTaskClick(task.id)} />
           </div>
         ))}
       </div>
       
+      {/* Enhanced decorative elements */}
       <div className="absolute bottom-4 left-10 w-3 h-3 rounded-full bg-nova-blue/30 blur-sm animate-float"></div>
       <div className="absolute top-10 right-20 w-2 h-2 rounded-full bg-nova-hot-pink/30 blur-sm animate-float animation-delay-500"></div>
       <div className="absolute bottom-10 right-40 w-4 h-4 rounded-full bg-nova-deep-purple/20 blur-md animate-float animation-delay-1000"></div>

@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Filter } from "lucide-react";
 
 interface TemplateFilterProps {
   onFilterChange: (filters: {
@@ -129,30 +129,41 @@ const TemplateFilter: React.FC<TemplateFilterProps> = ({ onFilterChange }) => {
   };
 
   return (
-    <div className="mb-6 bg-white rounded-2xl shadow-sm p-4">
-      <div className="flex justify-between items-center mb-2">
-        <h3 className="text-lg font-medium text-nova-dark-gray">模板筛选</h3>
-        <Button variant="ghost" size="sm" onClick={toggleFilter} className="px-2">
+    <div className="mb-6 glass-morphism rounded-2xl p-5 relative overflow-hidden group">
+      {/* Background gradient effect */}
+      <div className="absolute -inset-8 bg-gradient-to-r from-nova-blue/5 via-nova-hot-pink/5 to-nova-deep-purple/5 rounded-full blur-3xl"></div>
+      
+      <div className="flex justify-between items-center mb-4 relative z-10">
+        <div className="flex items-center">
+          <Filter className="h-5 w-5 text-nova-blue mr-2 animate-pulse" />
+          <h3 className="text-lg font-medium text-transparent bg-clip-text bg-gradient-to-r from-nova-dark-gray to-nova-blue">模板筛选</h3>
+        </div>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={toggleFilter} 
+          className="px-2 bg-white/40 backdrop-blur-sm hover:bg-white/60 border border-white/50 rounded-full"
+        >
           {expanded ? (
-            <ChevronUp className="h-5 w-5 text-nova-dark-gray" />
+            <ChevronUp className="h-5 w-5 text-nova-blue" />
           ) : (
-            <ChevronDown className="h-5 w-5 text-nova-dark-gray" />
+            <ChevronDown className="h-5 w-5 text-nova-blue" />
           )}
         </Button>
       </div>
       
       {expanded && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <h4 className="text-sm font-medium text-nova-dark-gray mb-2">平台</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 animate-fade-in relative z-10">
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium text-transparent bg-clip-text bg-gradient-to-r from-nova-dark-gray to-nova-blue">平台</h4>
             <div className="flex flex-wrap gap-2">
               {platforms.map((platform) => (
                 <button
                   key={platform}
-                  className={`px-3 py-1 text-sm rounded-full transition-colors ${
+                  className={`px-3 py-1 text-sm rounded-full transition-all duration-300 border ${
                     selectedPlatforms.includes(platform)
-                      ? "bg-nova-blue text-white"
-                      : "bg-nova-light-gray text-nova-dark-gray hover:bg-gray-200"
+                      ? "bg-gradient-to-r from-nova-blue to-nova-deep-purple text-white border-white/0 shadow-md"
+                      : "bg-white/40 backdrop-blur-sm text-nova-dark-gray hover:bg-white/60 border-white/50"
                   }`}
                   onClick={() => handlePlatformSelect(platform)}
                 >
@@ -162,16 +173,16 @@ const TemplateFilter: React.FC<TemplateFilterProps> = ({ onFilterChange }) => {
             </div>
           </div>
           
-          <div>
-            <h4 className="text-sm font-medium text-nova-dark-gray mb-2">行业</h4>
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium text-transparent bg-clip-text bg-gradient-to-r from-nova-dark-gray to-nova-blue">行业</h4>
             <div className="flex flex-wrap gap-2">
               {industries.map((industry) => (
                 <button
                   key={industry}
-                  className={`px-3 py-1 text-sm rounded-full transition-colors ${
+                  className={`px-3 py-1 text-sm rounded-full transition-all duration-300 border ${
                     selectedIndustries.includes(industry)
-                      ? "bg-nova-blue text-white"
-                      : "bg-nova-light-gray text-nova-dark-gray hover:bg-gray-200"
+                      ? "bg-gradient-to-r from-nova-hot-pink to-nova-vivid-orange text-white border-white/0 shadow-md"
+                      : "bg-white/40 backdrop-blur-sm text-nova-dark-gray hover:bg-white/60 border-white/50"
                   }`}
                   onClick={() => handleIndustrySelect(industry)}
                 >
@@ -181,16 +192,16 @@ const TemplateFilter: React.FC<TemplateFilterProps> = ({ onFilterChange }) => {
             </div>
           </div>
           
-          <div>
-            <h4 className="text-sm font-medium text-nova-dark-gray mb-2">收费</h4>
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium text-transparent bg-clip-text bg-gradient-to-r from-nova-dark-gray to-nova-blue">收费</h4>
             <div className="flex flex-wrap gap-2">
               {fees.map((fee) => (
                 <button
                   key={fee}
-                  className={`px-3 py-1 text-sm rounded-full transition-colors ${
+                  className={`px-3 py-1 text-sm rounded-full transition-all duration-300 border ${
                     selectedFees.includes(fee)
-                      ? "bg-nova-blue text-white"
-                      : "bg-nova-light-gray text-nova-dark-gray hover:bg-gray-200"
+                      ? "bg-gradient-to-r from-nova-blue to-nova-hot-pink text-white border-white/0 shadow-md"
+                      : "bg-white/40 backdrop-blur-sm text-nova-dark-gray hover:bg-white/60 border-white/50"
                   }`}
                   onClick={() => handleFeeSelect(fee)}
                 >
@@ -200,16 +211,16 @@ const TemplateFilter: React.FC<TemplateFilterProps> = ({ onFilterChange }) => {
             </div>
           </div>
           
-          <div>
-            <h4 className="text-sm font-medium text-nova-dark-gray mb-2">类型</h4>
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium text-transparent bg-clip-text bg-gradient-to-r from-nova-dark-gray to-nova-blue">类型</h4>
             <div className="flex flex-wrap gap-2">
               {types.map((type) => (
                 <button
                   key={type}
-                  className={`px-3 py-1 text-sm rounded-full transition-colors ${
+                  className={`px-3 py-1 text-sm rounded-full transition-all duration-300 border ${
                     selectedTypes.includes(type)
-                      ? "bg-nova-blue text-white"
-                      : "bg-nova-light-gray text-nova-dark-gray hover:bg-gray-200"
+                      ? "bg-gradient-to-r from-nova-deep-purple to-nova-blue text-white border-white/0 shadow-md"
+                      : "bg-white/40 backdrop-blur-sm text-nova-dark-gray hover:bg-white/60 border-white/50"
                   }`}
                   onClick={() => handleTypeSelect(type)}
                 >
@@ -220,6 +231,10 @@ const TemplateFilter: React.FC<TemplateFilterProps> = ({ onFilterChange }) => {
           </div>
         </div>
       )}
+      
+      {/* Decorative elements */}
+      <div className="absolute top-1/4 right-10 w-2 h-2 rounded-full bg-nova-blue/30 blur-sm"></div>
+      <div className="absolute bottom-1/3 left-1/4 w-3 h-3 rounded-full bg-nova-hot-pink/20 blur-sm"></div>
     </div>
   );
 };
