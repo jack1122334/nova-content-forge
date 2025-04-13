@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { TaskCardProps } from "@/components/marketplace/TaskCard";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,9 +7,10 @@ import { Loader2 } from "lucide-react";
 interface TaskPanelProps {
   initialTask?: TaskCardProps | null;
   onTaskDetailChange?: (taskDetail: string) => void;
+  onTaskChange?: (task: TaskCardProps) => void;
 }
 
-const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange }) => {
+const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange, onTaskChange }) => {
   const [task, setTask] = useState<TaskCardProps | null>(null);
   const [availableTasks, setAvailableTasks] = useState<TaskCardProps[]>([]);
   const [loading, setLoading] = useState(false);
@@ -60,13 +60,28 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange }
           
           setAvailableTasks(formattedTasks);
           
-          // If we have a recent task and it's not already set as initialTask,
-          // prioritize it over initialTask
-          if (recentTask && (!initialTask || recentTask.id !== initialTask.id)) {
+          // If we have an initialTask from props, use it
+          if (initialTask) {
+            setTask(initialTask);
+            setSelectedTaskId(initialTask.id);
+            if (onTaskDetailChange && initialTask.description) {
+              onTaskDetailChange(initialTask.description);
+            }
+            // Also notify parent component
+            if (onTaskChange) {
+              onTaskChange(initialTask);
+            }
+          }
+          // Otherwise if we have a recent task from localStorage, use it
+          else if (recentTask) {
             setTask(recentTask);
             setSelectedTaskId(recentTask.id);
             if (onTaskDetailChange && recentTask.description) {
               onTaskDetailChange(recentTask.description);
+            }
+            // Also notify parent component
+            if (onTaskChange) {
+              onTaskChange(recentTask);
             }
           }
         } else {
@@ -81,10 +96,10 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange }
     };
     
     fetchTasks();
-  }, [initialTask, onTaskDetailChange]);
+  }, [initialTask, onTaskDetailChange, onTaskChange]);
   
   useEffect(() => {
-    if (initialTask) {
+    if (initialTask && initialTask !== task) {
       setTask(initialTask);
       setSelectedTaskId(initialTask.id);
       console.log("Task set in TaskPanel from initialTask:", initialTask);
@@ -97,8 +112,13 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange }
       } else if (onTaskDetailChange && initialTask.description) {
         onTaskDetailChange(initialTask.description);
       }
+      
+      // Notify parent component about the task change
+      if (onTaskChange) {
+        onTaskChange(initialTask);
+      }
     }
-  }, [initialTask]);
+  }, [initialTask, onTaskDetailChange, onTaskChange]);
   
   const fetchTaskDescription = async (taskId: string) => {
     try {
@@ -114,19 +134,22 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange }
       }
       
       if (data && data.description) {
-        setTask(prevTask => {
-          const updatedTask = prevTask ? {...prevTask, description: data.description} : null;
+        const updatedTask = task ? {...task, description: data.description} : null;
+        
+        if (updatedTask) {
+          setTask(updatedTask);
           
           // Also update the recently selected task in localStorage with the description
-          if (updatedTask) {
-            localStorage.setItem('recentlySelectedTask', JSON.stringify(updatedTask));
+          localStorage.setItem('recentlySelectedTask', JSON.stringify(updatedTask));
+          
+          if (onTaskDetailChange) {
+            onTaskDetailChange(data.description);
           }
           
-          return updatedTask;
-        });
-        
-        if (onTaskDetailChange) {
-          onTaskDetailChange(data.description);
+          // Notify parent component about the task change
+          if (onTaskChange) {
+            onTaskChange(updatedTask);
+          }
         }
       }
     } catch (error) {
@@ -147,6 +170,11 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange }
         fetchTaskDescription(taskId);
       } else if (onTaskDetailChange) {
         onTaskDetailChange(selectedTask.description);
+      }
+      
+      // Notify parent component about the task change
+      if (onTaskChange) {
+        onTaskChange(selectedTask);
       }
     }
   };
@@ -171,7 +199,12 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ initialTask, onTaskDetailChange }
     if (onTaskDetailChange && currentTask.description) {
       onTaskDetailChange(currentTask.description);
     }
-  }, [currentTask, onTaskDetailChange]);
+    
+    // If we have a task and onTaskChange is provided, notify parent component
+    if (task && onTaskChange) {
+      onTaskChange(currentTask);
+    }
+  }, [currentTask, onTaskDetailChange, onTaskChange]);
   
   return (
     <div className="bg-white rounded-2xl shadow-sm p-6 h-full">

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -37,6 +36,21 @@ const StudioPage: React.FC = () => {
     if (location.state && location.state.selectedTask) {
       setTask(location.state.selectedTask);
       console.log("Task set from location state:", location.state.selectedTask);
+    } else {
+      // Check if there's a recently selected task in localStorage
+      const recentTaskJson = localStorage.getItem('recentlySelectedTask');
+      if (recentTaskJson) {
+        try {
+          const recentTask = JSON.parse(recentTaskJson);
+          console.log("Loading task from localStorage:", recentTask);
+          setTask(recentTask);
+          if (recentTask.description) {
+            setTaskDetailDescription(recentTask.description);
+          }
+        } catch (e) {
+          console.error("Error parsing recent task from localStorage:", e);
+        }
+      }
     }
   }, [location.state]);
   
@@ -58,6 +72,9 @@ const StudioPage: React.FC = () => {
         if (taskDetailDescription) {
           brandBrief += `: ${taskDetailDescription}`;
         }
+        console.log("Using task for brand brief:", task);
+      } else {
+        console.log("No task available for brand brief");
       }
       
       console.log("Sending brand brief to API:", brandBrief);
@@ -172,8 +189,8 @@ const StudioPage: React.FC = () => {
     console.log("Task detail description updated:", detail);
   };
   
-  // New handler for when a task changes in the TaskPanel
   const handleTaskChange = (newTask: TaskCardProps) => {
+    console.log("Task changed in StudioPage:", newTask);
     setTask(newTask);
     if (newTask.description) {
       setTaskDetailDescription(newTask.description);
@@ -185,7 +202,11 @@ const StudioPage: React.FC = () => {
       <h1 className="text-2xl font-bold text-nova-dark-gray mb-6">创作台</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <TaskPanel initialTask={task} onTaskDetailChange={handleTaskDetailChange} />
+        <TaskPanel 
+          initialTask={task} 
+          onTaskDetailChange={handleTaskDetailChange} 
+          onTaskChange={handleTaskChange}
+        />
         <TrendingPanel onSelectTrends={handleTrendSelect} />
         <AccountPanel />
       </div>
