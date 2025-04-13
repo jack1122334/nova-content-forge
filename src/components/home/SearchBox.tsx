@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 const SearchBox: React.FC = () => {
   return (
     <div className="relative w-full">
-      <div className="absolute -inset-4 bg-gradient-to-r from-nova-deep-purple/30 via-nova-blue/20 to-nova-hot-pink/30 rounded-full blur-xl opacity-70 animate-pulse"></div>
+      {/* Enhanced colorful glow effect */}
+      <div className="absolute -inset-8 bg-gradient-to-r from-nova-deep-purple/20 via-nova-blue/10 to-nova-hot-pink/20 rounded-full blur-3xl opacity-70 animate-pulse"></div>
       
       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
         <Search className="h-5 w-5 text-nova-blue" />
@@ -14,7 +15,7 @@ const SearchBox: React.FC = () => {
       
       <Input
         type="text"
-        className="w-full pl-12 py-6 text-lg rounded-full border-2 border-white/70 bg-white/90 backdrop-blur-sm hover:border-nova-blue focus:border-nova-blue transition-all shadow-lg hover:shadow-nova-deep-purple/30 hover:translate-y-[-2px] relative z-0"
+        className="w-full pl-12 py-6 text-lg rounded-full border border-white/30 bg-white/60 backdrop-blur-md hover:border-nova-blue focus:border-nova-blue transition-all shadow-lg hover:shadow-nova-deep-purple/20 hover:translate-y-[-2px] relative z-0"
         placeholder="搜索模板、品牌任务或灵感..."
       />
       
@@ -24,10 +25,11 @@ const SearchBox: React.FC = () => {
         </div>
       </div>
       
-      {/* Decorative elements */}
-      <div className="absolute top-1/2 right-20 w-3 h-3 rounded-full bg-nova-hot-pink/50 blur-sm animate-float animation-delay-300"></div>
-      <div className="absolute top-1/3 right-24 w-2 h-2 rounded-full bg-nova-deep-purple/50 blur-sm animate-float animation-delay-700"></div>
-      <div className="absolute bottom-1/3 right-16 w-1.5 h-1.5 rounded-full bg-nova-blue/50 blur-sm animate-float animation-delay-1000"></div>
+      {/* Enhanced decorative elements */}
+      <div className="absolute top-1/2 right-16 w-3 h-3 rounded-full bg-nova-hot-pink/40 blur-sm animate-float animation-delay-300"></div>
+      <div className="absolute top-1/3 right-20 w-4 h-4 rounded-full bg-nova-deep-purple/30 blur-md animate-float animation-delay-700"></div>
+      <div className="absolute bottom-1/3 right-24 w-5 h-5 rounded-full bg-nova-blue/30 blur-md animate-float animation-delay-1000"></div>
+      <div className="absolute top-2/3 left-20 w-3 h-3 rounded-full bg-nova-vivid-orange/30 blur-sm animate-float animation-delay-1500"></div>
     </div>
   );
 };

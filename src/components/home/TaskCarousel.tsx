@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import TaskCard, { TaskCardProps } from "../marketplace/TaskCard";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -34,7 +33,6 @@ const TaskCarousel: React.FC<TaskCarouselProps> = ({ tasks: propTasks }) => {
       
       if (error) {
         console.error("Error fetching tasks for carousel:", error);
-        // Use mock data if fetching fails
         setTasks(mockTasks);
         return;
       }
@@ -56,7 +54,6 @@ const TaskCarousel: React.FC<TaskCarouselProps> = ({ tasks: propTasks }) => {
         
         setTasks(formattedTasks);
       } else {
-        // Use mock data if no tasks in database
         setTasks(mockTasks);
       }
     } catch (error) {
@@ -71,7 +68,6 @@ const TaskCarousel: React.FC<TaskCarouselProps> = ({ tasks: propTasks }) => {
     navigate(`/marketplace`, { state: { selectedTaskId: taskId } });
   };
 
-  // Mock data for fallback
   const mockTasks: TaskCardProps[] = [
     {
       id: "1",
@@ -138,23 +134,31 @@ const TaskCarousel: React.FC<TaskCarouselProps> = ({ tasks: propTasks }) => {
 
   return (
     <div className="relative">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold text-nova-dark-gray">热门品牌任务</h2>
+      <div className="absolute -inset-8 rounded-3xl bg-gradient-to-r from-nova-deep-purple/5 via-nova-blue/2 to-nova-hot-pink/5 blur-3xl -z-10"></div>
+      
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-lg font-semibold text-transparent bg-clip-text bg-gradient-to-r from-nova-dark-gray to-nova-blue">热门品牌任务</h2>
         <div className="flex items-center">
-          <button className="w-8 h-8 rounded-full flex items-center justify-center text-nova-gray hover:bg-nova-light-gray">
+          <button className="w-10 h-10 rounded-full flex items-center justify-center text-nova-gray hover:text-nova-blue backdrop-blur-md bg-white/30 border border-white/30 transition-all duration-300 transform hover:scale-110 hover:shadow-md mr-2">
             <ChevronLeft className="h-5 w-5" />
           </button>
-          <button className="w-8 h-8 rounded-full flex items-center justify-center text-nova-gray hover:bg-nova-light-gray ml-1">
+          <button className="w-10 h-10 rounded-full flex items-center justify-center text-nova-gray hover:text-nova-blue backdrop-blur-md bg-white/30 border border-white/30 transition-all duration-300 transform hover:scale-110 hover:shadow-md">
             <ChevronRight className="h-5 w-5" />
           </button>
         </div>
       </div>
       
       <div className="grid grid-cols-5 gap-4">
-        {tasks.slice(0, 5).map((task) => (
-          <TaskCard key={task.id} {...task} onClick={() => handleTaskClick(task.id)} />
+        {tasks.slice(0, 5).map((task, index) => (
+          <div key={task.id} className={`animate-fade-in animation-delay-${index * 2}00`}>
+            <TaskCard {...task} onClick={() => handleTaskClick(task.id)} />
+          </div>
         ))}
       </div>
+      
+      <div className="absolute bottom-4 left-10 w-3 h-3 rounded-full bg-nova-blue/30 blur-sm animate-float"></div>
+      <div className="absolute top-10 right-20 w-2 h-2 rounded-full bg-nova-hot-pink/30 blur-sm animate-float animation-delay-500"></div>
+      <div className="absolute bottom-10 right-40 w-4 h-4 rounded-full bg-nova-deep-purple/20 blur-md animate-float animation-delay-1000"></div>
     </div>
   );
 };

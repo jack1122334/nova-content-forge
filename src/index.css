@@ -41,10 +41,11 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
+    background: linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(240,240,255,0.8) 100%);
   }
 
   .nova-card {
-    @apply bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden transition-all duration-200 hover:shadow-md;
+    @apply bg-white/80 backdrop-blur-md rounded-2xl shadow-sm border border-white/30 overflow-hidden transition-all duration-200 hover:shadow-md;
   }
 
   .nova-button {
@@ -52,15 +53,15 @@
   }
 
   .nova-text-input {
-    @apply bg-nova-light-gray rounded-lg px-4 py-2 border-0 focus:outline-none focus:ring-2 focus:ring-nova-blue;
+    @apply bg-nova-light-gray/70 backdrop-blur-sm rounded-lg px-4 py-2 border-0 focus:outline-none focus:ring-2 focus:ring-nova-blue;
   }
 
   .nova-tag {
-    @apply bg-nova-light-gray text-nova-dark-gray text-sm px-3 py-1 rounded-full;
+    @apply bg-nova-light-gray/70 backdrop-blur-sm text-nova-dark-gray text-sm px-3 py-1 rounded-full;
   }
 
   .nova-progress {
-    @apply h-1.5 bg-nova-light-gray rounded-full overflow-hidden;
+    @apply h-1.5 bg-nova-light-gray/60 backdrop-blur-sm rounded-full overflow-hidden;
   }
 
   .nova-progress-bar {
@@ -69,11 +70,11 @@
   
   /* Premium UI Utilities */
   .glass-card {
-    @apply bg-white/80 backdrop-blur-sm border border-white/20 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300;
+    @apply bg-white/40 backdrop-blur-md border border-white/30 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300;
   }
   
   .glass-morphism {
-    @apply backdrop-blur-xl bg-white/70 border border-white/20 shadow-lg;
+    @apply backdrop-blur-xl bg-white/30 border border-white/30 shadow-lg;
   }
   
   .premium-gradient {
@@ -155,12 +156,23 @@
 
 @keyframes float {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  50% { transform: translateY(-15px); }
 }
 
 @keyframes spin-slow {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+@keyframes float-rotate {
+  0% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(5deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+
+@keyframes glimmer {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
 }
 
 .animate-fade-in {
@@ -176,7 +188,7 @@
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%);
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
   background-size: 1000px 100%;
   animation: shimmer 2s infinite linear;
 }
@@ -187,4 +199,12 @@
 
 .animate-spin-slow {
   animation: spin-slow 15s linear infinite;
+}
+
+.animate-float-rotate {
+  animation: float-rotate 10s ease-in-out infinite;
+}
+
+.animate-glimmer {
+  animation: glimmer 3s linear infinite;
 }

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import SearchBox from "@/components/home/SearchBox";
 import Stats from "@/components/home/Stats";
@@ -253,49 +252,40 @@ const HomePage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-16 relative">
-      {/* Decorative background elements */}
+    <div className="space-y-16 relative overflow-hidden">
       <DecorativeElements />
       
-      {/* Hero Section with Enhanced Search */}
       <div className="relative flex flex-col items-center justify-center py-24 space-y-12 overflow-hidden">
-        {/* Heading with enhanced typography and animation */}
         <h1 className="text-4xl md:text-6xl font-bold text-center leading-tight max-w-4xl animate-fade-in">
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-nova-deep-purple via-nova-blue to-nova-hot-pink font-extrabold">
             Nova
           </span>
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-nova-dark-gray to-nova-blue">
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-nova-dark-gray/90 to-nova-blue/90">
             : World's first AI influencer marketing platform
           </span>
         </h1>
         
-        {/* Tagline with staggered animation */}
         <p className="text-lg text-nova-gray max-w-2xl text-center animate-fade-in animation-delay-300">
           创造独特的社媒内容，连接品牌与创作者，提升市场影响力
         </p>
         
-        {/* Enhanced SearchBox */}
         <div className="w-full max-w-2xl mx-auto transform transition-all duration-500 hover:scale-[1.02] animate-fade-in animation-delay-500">
           <SearchBox />
         </div>
         
-        {/* Stats with enhanced visuals */}
         <div className="w-full max-w-4xl animate-fade-in animation-delay-700">
           <Stats />
         </div>
       </div>
       
-      {/* Task Carousel Section with enhanced glass effect */}
-      <div className="relative px-4 py-10 rounded-3xl glass-morphism border border-white/30 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-nova-blue/5 to-nova-deep-purple/5 rounded-3xl -z-10"></div>
+      <div className="relative px-6 py-12 rounded-3xl backdrop-blur-lg bg-white/20 border border-white/30 overflow-hidden shadow-xl">
         <TaskCarousel tasks={mockTasks} />
       </div>
       
-      {/* Templates Section with enhanced glass effect */}
       <div className="relative">
         <TemplateFilter onFilterChange={handleFilterChange} />
         
-        <div className="glass-morphism rounded-3xl p-8 border border-white/30 overflow-hidden">
+        <div className="backdrop-blur-xl bg-white/20 border border-white/30 rounded-3xl p-8 overflow-hidden shadow-xl">
           <div className="flex justify-between items-center mb-8">
             <div className="flex items-center">
               <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-nova-deep-purple to-nova-blue mr-2">热门灵感</h2>
@@ -308,7 +298,7 @@ const HomePage: React.FC = () => {
                 className={`text-sm px-5 py-2.5 rounded-full transform transition-all duration-300 ${
                   sortBy === "newest" 
                     ? 'bg-gradient-to-r from-nova-deep-purple to-nova-blue text-white shadow-lg' 
-                    : 'bg-white/80 backdrop-blur-sm text-nova-dark-gray hover:scale-105 border border-white/50'
+                    : 'backdrop-blur-md bg-white/40 text-nova-dark-gray hover:scale-105 border border-white/30'
                 }`}
               >
                 最新
@@ -318,7 +308,7 @@ const HomePage: React.FC = () => {
                 className={`text-sm px-5 py-2.5 rounded-full transform transition-all duration-300 ${
                   sortBy === "popular" 
                     ? 'bg-gradient-to-r from-nova-hot-pink to-nova-vivid-orange text-white shadow-lg' 
-                    : 'bg-white/80 backdrop-blur-sm text-nova-dark-gray hover:scale-105 border border-white/50'
+                    : 'backdrop-blur-md bg-white/40 text-nova-dark-gray hover:scale-105 border border-white/30'
                 }`}
               >
                 热门
@@ -328,7 +318,7 @@ const HomePage: React.FC = () => {
                 className={`text-sm px-5 py-2.5 rounded-full transform transition-all duration-300 ${
                   sortBy === "recommended" 
                     ? 'bg-gradient-to-r from-nova-vivid-orange to-nova-blue text-white shadow-lg' 
-                    : 'bg-white/80 backdrop-blur-sm text-nova-dark-gray hover:scale-105 border border-white/50'
+                    : 'backdrop-blur-md bg-white/40 text-nova-dark-gray hover:scale-105 border border-white/30'
                 }`}
               >
                 推荐
@@ -364,7 +354,7 @@ const HomePage: React.FC = () => {
           {filteredTemplates.length > 0 && (
             <div className="flex justify-center mt-10">
               <button 
-                className="relative overflow-hidden px-8 py-3 rounded-full bg-white text-nova-blue border-2 border-nova-blue hover:bg-blue-50 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group"
+                className="relative overflow-hidden px-8 py-3 rounded-full backdrop-blur-md bg-white/40 text-nova-blue border border-nova-blue/30 hover:bg-white/60 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group"
                 onClick={loadMore}
               >
                 <span className="relative z-10">加载更多</span>
@@ -374,6 +364,9 @@ const HomePage: React.FC = () => {
           )}
         </div>
       </div>
+      
+      <div className="absolute top-1/3 left-0 w-[300px] h-[300px] -translate-x-1/2 rounded-full bg-gradient-to-r from-nova-blue/10 to-transparent blur-3xl"></div>
+      <div className="absolute bottom-1/4 right-0 w-[400px] h-[400px] translate-x-1/2 rounded-full bg-gradient-to-l from-nova-hot-pink/10 to-transparent blur-3xl"></div>
     </div>
   );
 };
