@@ -80,6 +80,11 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ onSelectTemplate, s
     window.location.href = '/inspiration';
   };
 
+  // Function to render HTML content safely
+  const renderHtmlContent = (htmlContent: string) => {
+    return { __html: htmlContent || '' };
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-sm p-6">
       <div className="flex justify-between items-center mb-4">
@@ -105,11 +110,18 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ onSelectTemplate, s
               onClick={() => handleTemplateSelect(template.id, template.html_content)}
             >
               <div className="aspect-[4/3] relative">
-                <img 
-                  src={template.image} 
-                  alt={template.title}
-                  className="w-full h-full object-cover"
-                />
+                {template.html_content ? (
+                  <div 
+                    className="w-full h-full overflow-hidden"
+                    dangerouslySetInnerHTML={renderHtmlContent(template.html_content)}
+                  />
+                ) : (
+                  <img 
+                    src={template.image} 
+                    alt={template.title}
+                    className="w-full h-full object-cover"
+                  />
+                )}
                 {selectedTemplate === template.id && (
                   <div className="absolute inset-0 bg-nova-blue/10 flex items-center justify-center">
                     <span className="bg-nova-blue text-white text-xs px-2 py-1 rounded-full">已选择</span>
