@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import TemplateFilter from "@/components/home/TemplateFilter";
 import TemplateCard from "@/components/home/TemplateCard";
@@ -61,8 +62,38 @@ const InspirationPage: React.FC = () => {
         setTemplates(formattedTemplates);
         setFilteredTemplates(formattedTemplates);
       } else {
-        setTemplates([]);
-        setFilteredTemplates([]);
+        // Add the specific templates requested
+        const defaultTemplates = [
+          {
+            id: "1",
+            title: "小红书红白模板",
+            image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300&h=400&auto=format&fit=crop",
+            html_content: "<div style='color: red; background-color: white; padding: 20px; font-family: sans-serif;'>小红书红白模板内容</div>",
+            views: 542,
+            likes: 128,
+            isFree: true,
+            platform: "小红书",
+            created_at: new Date().toISOString()
+          },
+          {
+            id: "2",
+            title: "小红书主题大字",
+            image: "https://images.unsplash.com/photo-1581299894341-367e6517e592?w=300&h=400&auto=format&fit=crop",
+            html_content: "<div style='font-size: 24px; font-weight: bold; text-align: center; padding: 20px; font-family: sans-serif;'>小红书主题大字内容</div>",
+            views: 321,
+            likes: 89,
+            isFree: true,
+            platform: "小红书",
+            created_at: new Date(Date.now() - 86400000).toISOString()
+          }
+        ];
+        
+        setTemplates(defaultTemplates);
+        setFilteredTemplates(defaultTemplates);
+        
+        // Save these templates to localStorage for future use
+        localStorage.setItem('templates', JSON.stringify(defaultTemplates));
+        localStorage.setItem('favoriteTemplates', JSON.stringify(["1", "2"]));
       }
       
     } catch (error) {
