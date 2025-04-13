@@ -1,43 +1,92 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import TemplateFilter from "@/components/home/TemplateFilter";
-import TemplateCard, { TemplateCardProps } from "@/components/home/TemplateCard";
-
-// Generate mock inspiration data
-const mockInspirations: TemplateCardProps[] = Array.from({ length: 21 }, (_, i) => ({
-  id: `inspiration-${i + 1}`,
-  title: [
-    "春季穿搭灵感分享",
-    "日系简约家居布置",
-    "职场干货分享",
-    "宝妈日常好物推荐",
-    "小众景点打卡",
-    "健身餐制作教程",
-    "极简生活方式",
-    "复古文艺风格穿搭",
-    "城市探店记录",
-    "阅读角落布置",
-    "办公桌面整理",
-    "轻奢生活方式",
-    "夏日防晒指南",
-    "手账排版示例",
-    "留学生活记录",
-    "赛博朋克风格",
-    "二次元周边分享",
-    "轻食料理做法",
-    "城市街拍风格",
-    "香氛使用指南",
-    "户外露营装备",
-  ][i % 21],
-  image: `https://images.unsplash.com/photo-${148 + i % 5}${4 + i % 4}958449943-2429e8be8625?w=300&h=200&auto=format&fit=crop`,
-  views: Math.floor(Math.random() * 10000) + 1000,
-  likes: Math.floor(Math.random() * 1000) + 100,
-  isFree: i % 3 === 0,
-  platform: ["小红书", "抖音", "快手", "视频号", "Instagram", "youtube", "X"][i % 7],
-}));
+import TemplateCard from "@/components/home/TemplateCard";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 const InspirationPage: React.FC = () => {
-  const [filteredInspirations, setFilteredInspirations] = useState(mockInspirations);
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [filteredTemplates, setFilteredTemplates] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [sortBy, setSortBy] = useState("popular"); // popular, newest, recommended
+  const [userFavorites, setUserFavorites] = useState<string[]>([]);
+  
+  useEffect(() => {
+    fetchTemplates();
+    fetchUserFavorites();
+  }, []);
+  
+  useEffect(() => {
+    // Apply sort to templates
+    let sorted = [...templates];
+    
+    if (sortBy === "newest") {
+      sorted = sorted.sort((a, b) => 
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+    } else if (sortBy === "popular") {
+      sorted = sorted.sort((a, b) => (b.views || 0) - (a.views || 0));
+    } else {
+      // For recommended, we could use a different algorithm later
+      sorted = sorted.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+    }
+    
+    setFilteredTemplates(sorted);
+  }, [templates, sortBy]);
+  
+  const fetchTemplates = async () => {
+    setIsLoading(true);
+    try {
+      // Get templates that have been approved
+      const { data, error } = await supabase
+        .from('templates')
+        .select('*')
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      
+      // Transform the data to match the TemplateCard props
+      const transformedData = data.map(template => ({
+        id: template.id,
+        title: template.title,
+        image: template.image_url,
+        views: template.views || 0,
+        likes: template.likes || 0,
+        isFree: template.is_free,
+        platform: template.platforms ? template.platforms[0] : "通用",
+      }));
+      
+      setTemplates(transformedData);
+      setFilteredTemplates(transformedData);
+    } catch (error) {
+      console.error("Error fetching templates:", error);
+      toast.error("加载模板失败，请刷新页面重试");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const fetchUserFavorites = async () => {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      
+      if (user && user.user) {
+        const { data, error } = await supabase
+          .from('template_favorites')
+          .select('template_id')
+          .eq('user_id', user.user.id);
+        
+        if (error) throw error;
+        
+        setUserFavorites(data.map(item => item.template_id));
+      }
+    } catch (error) {
+      console.error("Error fetching user favorites:", error);
+    }
+  };
   
   const handleFilterChange = (filters: {
     platforms: string[];
@@ -45,10 +94,81 @@ const InspirationPage: React.FC = () => {
     fees: string[];
     types: string[];
   }) => {
-    // Filter logic would go here in a real app
-    console.log("Filters applied:", filters);
-    // For now, we'll just use the mock data
-    setFilteredInspirations(mockInspirations);
+    let filtered = [...templates];
+    
+    // Apply platform filter
+    if (filters.platforms.length > 0) {
+      filtered = filtered.filter(template => 
+        filters.platforms.some(p => template.platform.includes(p))
+      );
+    }
+    
+    // Apply fee filter
+    if (filters.fees.length > 0) {
+      filtered = filtered.filter(template => 
+        (filters.fees.includes('free') && template.isFree) || 
+        (filters.fees.includes('paid') && !template.isFree)
+      );
+    }
+    
+    // Note: industries and types would need the corresponding data in the templates
+    
+    setFilteredTemplates(filtered);
+  };
+  
+  const handleToggleFavorite = async (id: string) => {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      
+      if (!user || !user.user) {
+        toast.error("请先登录后再收藏模板");
+        return;
+      }
+      
+      const isFavorited = userFavorites.includes(id);
+      
+      if (isFavorited) {
+        // Remove from favorites
+        await supabase
+          .from('template_favorites')
+          .delete()
+          .eq('user_id', user.user.id)
+          .eq('template_id', id);
+        
+        setUserFavorites(prev => prev.filter(templateId => templateId !== id));
+      } else {
+        // Add to favorites
+        await supabase
+          .from('template_favorites')
+          .insert({
+            user_id: user.user.id,
+            template_id: id
+          });
+        
+        setUserFavorites(prev => [...prev, id]);
+      }
+      
+      // Update template like count in the UI
+      setTemplates(prev => 
+        prev.map(template => 
+          template.id === id 
+            ? { ...template, likes: template.likes + (isFavorited ? -1 : 1) } 
+            : template
+        )
+      );
+      
+      // Update the template like count in the database
+      await supabase.rpc('update_template_likes', { template_id: id });
+      
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+      toast.error("收藏操作失败，请重试");
+    }
+  };
+  
+  const loadMore = async () => {
+    // Implement pagination logic here
+    toast.info("加载更多模板...");
   };
 
   return (
@@ -61,23 +181,58 @@ const InspirationPage: React.FC = () => {
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-lg font-semibold text-nova-dark-gray">热门灵感</h2>
           <div className="flex">
-            <button className="text-sm px-4 py-2 rounded-lg mr-2 bg-nova-light-gray text-nova-dark-gray">最新</button>
-            <button className="text-sm px-4 py-2 rounded-lg mr-2 bg-nova-blue text-white">热门</button>
-            <button className="text-sm px-4 py-2 rounded-lg bg-nova-light-gray text-nova-dark-gray">推荐</button>
+            <button 
+              onClick={() => setSortBy("newest")}
+              className={`text-sm px-4 py-2 rounded-lg mr-2 ${sortBy === "newest" ? 'bg-nova-blue text-white' : 'bg-nova-light-gray text-nova-dark-gray'}`}
+            >
+              最新
+            </button>
+            <button 
+              onClick={() => setSortBy("popular")}
+              className={`text-sm px-4 py-2 rounded-lg mr-2 ${sortBy === "popular" ? 'bg-nova-blue text-white' : 'bg-nova-light-gray text-nova-dark-gray'}`}
+            >
+              热门
+            </button>
+            <button 
+              onClick={() => setSortBy("recommended")}
+              className={`text-sm px-4 py-2 rounded-lg ${sortBy === "recommended" ? 'bg-nova-blue text-white' : 'bg-nova-light-gray text-nova-dark-gray'}`}
+            >
+              推荐
+            </button>
           </div>
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-4">
-          {filteredInspirations.map(inspiration => (
-            <TemplateCard key={inspiration.id} {...inspiration} />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="flex justify-center items-center py-20">
+            <Loader2 className="h-10 w-10 text-nova-blue animate-spin" />
+          </div>
+        ) : filteredTemplates.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-4">
+            {filteredTemplates.map(template => (
+              <TemplateCard 
+                key={template.id} 
+                {...template} 
+                isFavorite={userFavorites.includes(template.id)}
+                onToggleFavorite={() => handleToggleFavorite(template.id)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-20">
+            <p className="text-nova-gray">暂无模板数据</p>
+          </div>
+        )}
         
-        <div className="flex justify-center mt-8">
-          <button className="nova-button bg-white text-nova-blue border border-nova-blue hover:bg-blue-50">
-            加载更多
-          </button>
-        </div>
+        {filteredTemplates.length > 0 && (
+          <div className="flex justify-center mt-8">
+            <button 
+              className="nova-button bg-white text-nova-blue border border-nova-blue hover:bg-blue-50"
+              onClick={loadMore}
+            >
+              加载更多
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

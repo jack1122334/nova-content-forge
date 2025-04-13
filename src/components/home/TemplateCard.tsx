@@ -10,6 +10,8 @@ export interface TemplateCardProps {
   likes: number;
   isFree: boolean;
   platform: string;
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
 }
 
 const TemplateCard: React.FC<TemplateCardProps> = ({
@@ -19,9 +21,9 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
   likes,
   isFree,
   platform,
+  isFavorite = false,
+  onToggleFavorite,
 }) => {
-  const [isFavorite, setIsFavorite] = React.useState(false);
-
   return (
     <div className="nova-card">
       <div className="aspect-[4/3] relative overflow-hidden">
@@ -53,13 +55,13 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
             className="flex items-center text-xs"
             onClick={(e) => {
               e.stopPropagation();
-              setIsFavorite(!isFavorite);
+              if (onToggleFavorite) onToggleFavorite();
             }}
           >
             <Heart 
               className={`h-3 w-3 mr-1 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-nova-gray'}`} 
             /> 
-            {likes + (isFavorite ? 1 : 0)}
+            {likes}
           </button>
         </div>
       </div>

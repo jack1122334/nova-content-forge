@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { CameraIcon, FileUp, Plus, X, Code } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -8,6 +7,8 @@ import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const platforms = ["小红书", "抖音", "快手", "视频号", "Instagram", "youtube", "X", "reddit", "Facebook"];
 const industries = ["通用", "食品", "服装", "软件", "美妆", "日化", "电子", "汽车", "餐饮"];
@@ -15,7 +16,7 @@ const types = ["图文", "视频", "纯文字", "其他"];
 
 const formSchema = z.object({
   title: z.string().min(2, { message: "标题至少需要2个字符" }),
-  description: z.string().min(10, { message: "描述至少需要10个字符" }),
+  description: z.string().optional(),
   platforms: z.array(z.string()).min(1, { message: "请至少选择一个平台" }),
   industries: z.array(z.string()).min(1, { message: "请至少选择一个行业" }),
   templateType: z.string({ required_error: "请选择模板类型" }),
@@ -34,6 +35,8 @@ const TemplateSubmitPage: React.FC = () => {
   const [coverImage, setCoverImage] = useState<FileWithPreview | null>(null);
   const [templateFiles, setTemplateFiles] = useState<FileWithPreview[]>([]);
   const [htmlTemplateFile, setHtmlTemplateFile] = useState<FileWithPreview | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -108,7 +111,7 @@ const TemplateSubmitPage: React.FC = () => {
     setHtmlTemplateFile(null);
   };
 
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
     if (!coverImage) {
       toast.error("请上传封面图");
       return;
@@ -119,13 +122,73 @@ const TemplateSubmitPage: React.FC = () => {
       return;
     }
     
-    // Here you would typically send the data to your backend
-    console.log("Form data:", data);
-    console.log("Cover image:", coverImage);
-    console.log("Template files:", templateFiles);
-    console.log("HTML template file:", htmlTemplateFile);
+    setIsSubmitting(true);
     
-    toast.success("模板提交成功，等待审核");
+    try {
+      const coverImagePath = `template-images/${Date.now()}_${coverImage.name}`;
+      const { error: coverUploadError } = await supabase.storage
+        .from('template-images')
+        .upload(coverImagePath, coverImage.file);
+      
+      if (coverUploadError) {
+        throw new Error(`封面图上传失败: ${coverUploadError.message}`);
+      }
+      
+      const { data: coverImageUrl } = supabase.storage
+        .from('template-images')
+        .getPublicUrl(coverImagePath);
+      
+      const templateData = {
+        title: data.title,
+        description: data.description || "",
+        image_url: coverImageUrl.publicUrl,
+        platforms: data.platforms,
+        industries: data.industries,
+        type: data.templateType,
+        is_free: data.pricing === "free",
+        price: data.pricing === "paid" ? parseFloat(data.price || "0") : 0,
+        has_html_template: !!htmlTemplateFile,
+        status: "pending"
+      };
+      
+      const { data: template, error: templateError } = await supabase
+        .from('templates')
+        .insert(templateData)
+        .select()
+        .single();
+      
+      if (templateError) {
+        throw new Error(`模板数据保存失败: ${templateError.message}`);
+      }
+      
+      if (templateFiles.length > 0) {
+        for (const file of templateFiles) {
+          const filePath = `template-files/${template.id}/${file.name}`;
+          await supabase.storage
+            .from('template-files')
+            .upload(filePath, file.file);
+        }
+      }
+      
+      if (htmlTemplateFile) {
+        const htmlPath = `template-html/${template.id}/${htmlTemplateFile.name}`;
+        await supabase.storage
+          .from('template-html')
+          .upload(htmlPath, htmlTemplateFile.file);
+      }
+      
+      toast.success("模板提交成功，等待审核");
+      
+      setTimeout(() => {
+        navigate('/inspiration');
+      }, 1500);
+      
+    } catch (error) {
+      console.error("Template submission error:", error);
+      toast.error(error instanceof Error ? error.message : "模板提交失败，请重试");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -166,11 +229,11 @@ const TemplateSubmitPage: React.FC = () => {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium text-nova-gray">模板描述</FormLabel>
+                    <FormLabel className="text-sm font-medium text-nova-gray">模板描述（选填）</FormLabel>
                     <FormControl>
                       <Textarea
                         className="nova-text-input w-full min-h-[120px] resize-none"
-                        placeholder="请详细描述您的模板特点和适用场景..."
+                        placeholder="请描述您的模板特点和适用场景..."
                         {...field}
                       />
                     </FormControl>
@@ -415,7 +478,13 @@ const TemplateSubmitPage: React.FC = () => {
               </div>
               
               <div className="pt-4 flex justify-center">
-                <button type="submit" className="nova-button py-3 px-8">提交审核</button>
+                <button 
+                  type="submit" 
+                  className="nova-button py-3 px-8"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? '提交中...' : '提交审核'}
+                </button>
               </div>
             </form>
           </Form>
