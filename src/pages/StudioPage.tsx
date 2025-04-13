@@ -49,17 +49,23 @@ const StudioPage: React.FC = () => {
       const accountInfoElement = document.querySelector('[data-info="account-info"]');
       const accountInfo = accountInfoElement?.textContent || "";
       
-      // Get brand brief info with detailed description
-      const brandBrief = task 
-        ? `${task.brand} - ${task.brief}${taskDetailDescription ? `: ${taskDetailDescription}` : ""}`
-        : "无品牌任务";
+      // Construct brand brief from current task only
+      let brandBrief = "无品牌任务";
+      
+      if (task) {
+        // Combine brand, brief and description into a single string for the current task only
+        brandBrief = `${task.brand} - ${task.brief}`;
+        if (taskDetailDescription) {
+          brandBrief += `: ${taskDetailDescription}`;
+        }
+      }
       
       console.log("Sending brand brief to API:", brandBrief);
       
       // Get selected trends
       const hotspots = selectedTrends.length > 0 ? selectedTrends.join("、") : "";
       
-      // Prepare request payload
+      // Prepare request payload - simplified template handling
       const payload = {
         workflow_id: "7492378369356333090",
         parameters: {
@@ -67,8 +73,8 @@ const StudioPage: React.FC = () => {
           hotspot: hotspots,
           account_info: accountInfo,
           text_style: customRequirements || "",
-          template: styleOption === "use-template" && selectedTemplate ? selectedTemplate : "",
-          template_html: styleOption === "use-template" && selectedTemplateHtml ? selectedTemplateHtml : ""
+          // Only pass the HTML content in the template field when using a template
+          template: styleOption === "use-template" && selectedTemplateHtml ? selectedTemplateHtml : ""
         }
       };
 
