@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +11,7 @@ import MarketplacePage from "./pages/MarketplacePage";
 import StudioPage from "./pages/StudioPage";
 import InspirationPage from "./pages/InspirationPage";
 import TemplateSubmitPage from "./pages/TemplateSubmitPage";
+import WorkflowSubmitPage from "./pages/WorkflowSubmitPage";
 import ProfilePage from "./pages/ProfilePage";
 import BrandPage from "./pages/BrandPage";
 import AuthPage from "./pages/AuthPage";
@@ -33,9 +33,7 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<AuthPage />} />
             
-            <Route path="/" element={
-              <Layout />
-            }>
+            <Route path="/" element={<Layout />}>
               <Route index element={<HomePage />} />
               <Route path="marketplace" element={<MarketplacePage />} />
               <Route path="studio" element={

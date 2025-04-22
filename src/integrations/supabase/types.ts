@@ -60,6 +60,48 @@ export type Database = {
         }
         Relationships: []
       }
+      coze_workflows: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          input_fields: Json
+          is_public: boolean | null
+          name: string
+          output_fields: Json
+          updated_at: string | null
+          workflow_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          input_fields: Json
+          is_public?: boolean | null
+          name: string
+          output_fields: Json
+          updated_at?: string | null
+          workflow_id: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          input_fields?: Json
+          is_public?: boolean | null
+          name?: string
+          output_fields?: Json
+          updated_at?: string | null
+          workflow_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
