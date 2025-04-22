@@ -49,6 +49,11 @@ const App = () => (
                   <TemplateSubmitPage />
                 </ProtectedRoute>
               } />
+              <Route path="workflows/submit" element={
+                <ProtectedRoute>
+                  <WorkflowSubmitPage />
+                </ProtectedRoute>
+              } />
               <Route path="profile" element={
                 <ProtectedRoute>
                   <ProfilePage />

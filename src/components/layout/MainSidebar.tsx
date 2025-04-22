@@ -72,6 +72,7 @@ const MainSidebar: React.FC<MainSidebarProps> = ({ userType, setUserType }) => {
     { name: "创作台", path: "/studio", icon: PenTool },
     { name: "灵感广场", path: "/inspiration", icon: Lightbulb },
     { name: "模板提交", path: "/templates/submit", icon: FileText },
+    { name: "上传工作流", path: "/workflows/submit", icon: FileText },
   ];
   
   const userTypeNavItem = { 

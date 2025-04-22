@@ -4,6 +4,7 @@ import TemplateCard from "@/components/home/TemplateCard";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const InspirationPage: React.FC = () => {
   const [templates, setTemplates] = useState<any[]>([]);
@@ -11,10 +12,13 @@ const InspirationPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [sortBy, setSortBy] = useState("newest");
   const [userFavorites, setUserFavorites] = useState<string[]>([]);
+  const [workflows, setWorkflows] = useState<any[]>([]);
+  const [isLoadingWorkflows, setIsLoadingWorkflows] = useState(true);
 
   useEffect(() => {
     fetchTemplates();
     fetchUserFavorites();
+    fetchWorkflows();
   }, []);
 
   useEffect(() => {
@@ -116,6 +120,23 @@ const InspirationPage: React.FC = () => {
     }
   };
 
+  const fetchWorkflows = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('coze_workflows')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setWorkflows(data || []);
+    } catch (error) {
+      console.error("Error fetching workflows:", error);
+      toast.error("加载工作流失败");
+    } finally {
+      setIsLoadingWorkflows(false);
+    }
+  };
+
   const handleToggleFavorite = async (id: string) => {
     try {
       const isFavorited = userFavorites.includes(id);
@@ -178,65 +199,116 @@ const InspirationPage: React.FC = () => {
     <div>
       <h1 className="text-2xl font-bold text-nova-dark-gray mb-6">灵感广场</h1>
       
-      <TemplateFilter onFilterChange={handleFilterChange} />
-      
-      <div className="bg-white rounded-2xl shadow-sm p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-lg font-semibold text-nova-dark-gray">热门灵感</h2>
-          <div className="flex">
-            <button 
-              onClick={() => setSortBy("newest")}
-              className={`text-sm px-4 py-2 rounded-lg mr-2 ${sortBy === "newest" ? 'bg-nova-blue text-white' : 'bg-nova-light-gray text-nova-dark-gray'}`}
-            >
-              最新
-            </button>
-            <button 
-              onClick={() => setSortBy("popular")}
-              className={`text-sm px-4 py-2 rounded-lg mr-2 ${sortBy === "popular" ? 'bg-nova-blue text-white' : 'bg-nova-light-gray text-nova-dark-gray'}`}
-            >
-              热门
-            </button>
-            <button 
-              onClick={() => setSortBy("recommended")}
-              className={`text-sm px-4 py-2 rounded-lg ${sortBy === "recommended" ? 'bg-nova-blue text-white' : 'bg-nova-light-gray text-nova-dark-gray'}`}
-            >
-              推荐
-            </button>
+      <Tabs defaultValue="templates" className="w-full">
+        <TabsList className="mb-6">
+          <TabsTrigger value="templates">模板</TabsTrigger>
+          <TabsTrigger value="workflows">工作流</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="templates">
+          <TemplateFilter onFilterChange={handleFilterChange} />
+          
+          <div className="bg-white rounded-2xl shadow-sm p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-semibold text-nova-dark-gray">热门灵感</h2>
+              <div className="flex">
+                <button 
+                  onClick={() => setSortBy("newest")}
+                  className={`text-sm px-4 py-2 rounded-lg mr-2 ${sortBy === "newest" ? 'bg-nova-blue text-white' : 'bg-nova-light-gray text-nova-dark-gray'}`}
+                >
+                  最新
+                </button>
+                <button 
+                  onClick={() => setSortBy("popular")}
+                  className={`text-sm px-4 py-2 rounded-lg mr-2 ${sortBy === "popular" ? 'bg-nova-blue text-white' : 'bg-nova-light-gray text-nova-dark-gray'}`}
+                >
+                  热门
+                </button>
+                <button 
+                  onClick={() => setSortBy("recommended")}
+                  className={`text-sm px-4 py-2 rounded-lg ${sortBy === "recommended" ? 'bg-nova-blue text-white' : 'bg-nova-light-gray text-nova-dark-gray'}`}
+                >
+                  推荐
+                </button>
+              </div>
+            </div>
+            
+            {isLoading ? (
+              <div className="flex justify-center items-center py-20">
+                <Loader2 className="h-10 w-10 text-nova-blue animate-spin" />
+              </div>
+            ) : filteredTemplates.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {filteredTemplates.map(template => (
+                  <TemplateCard 
+                    key={template.id} 
+                    {...template} 
+                    isFavorite={userFavorites.includes(template.id)}
+                    onToggleFavorite={() => handleToggleFavorite(template.id)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-20">
+                <p className="text-nova-gray">暂无模板数据</p>
+              </div>
+            )}
+            
+            {filteredTemplates.length > 0 && (
+              <div className="flex justify-center mt-8">
+                <button 
+                  className="nova-button bg-white text-nova-blue border border-nova-blue hover:bg-blue-50"
+                  onClick={loadMore}
+                >
+                  加载更多
+                </button>
+              </div>
+            )}
           </div>
-        </div>
-        
-        {isLoading ? (
-          <div className="flex justify-center items-center py-20">
-            <Loader2 className="h-10 w-10 text-nova-blue animate-spin" />
+        </TabsContent>
+
+        <TabsContent value="workflows">
+          <div className="bg-white rounded-2xl shadow-sm p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-semibold text-nova-dark-gray">Coze 工作流</h2>
+            </div>
+            
+            {isLoadingWorkflows ? (
+              <div className="flex justify-center items-center py-20">
+                <Loader2 className="h-10 w-10 text-nova-blue animate-spin" />
+              </div>
+            ) : workflows.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {workflows.map(workflow => (
+                  <div key={workflow.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                    {workflow.image_url && (
+                      <div className="aspect-[3/4] relative">
+                        <img
+                          src={workflow.image_url}
+                          alt={workflow.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <div className="p-4">
+                      <h3 className="font-medium text-gray-900 truncate">{workflow.name}</h3>
+                      {workflow.description && (
+                        <p className="mt-1 text-sm text-gray-500 line-clamp-2">
+                          {workflow.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-20">
+                <p className="text-nova-gray">暂无工作流数据</p>
+              </div>
+            )}
           </div>
-        ) : filteredTemplates.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {filteredTemplates.map(template => (
-              <TemplateCard 
-                key={template.id} 
-                {...template} 
-                isFavorite={userFavorites.includes(template.id)}
-                onToggleFavorite={() => handleToggleFavorite(template.id)}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-20">
-            <p className="text-nova-gray">暂无模板数据</p>
-          </div>
-        )}
-        
-        {filteredTemplates.length > 0 && (
-          <div className="flex justify-center mt-8">
-            <button 
-              className="nova-button bg-white text-nova-blue border border-nova-blue hover:bg-blue-50"
-              onClick={loadMore}
-            >
-              加载更多
-            </button>
-          </div>
-        )}
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
